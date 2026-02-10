@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ballers - Tienda Oficial</title>
+  <link rel="stylesheet" href="../../css/base.css"/>
+  <style>
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="container header__inner">
+    <a class="logo" href="/">Ballers <span aria-hidden="true">🏀👟</span></a>
+
+    <div class="search">
+      <input type="text" placeholder="Buscar sneakers...">
+      <button type="button">🔍</button>
+    </div>
+
+    <button class="nav__toggle" id="menu-toggle">☰</button>
+
+    <nav id="main-nav" class="nav">
+      <ul id="nav-user" class="hidden">
+        <li><a class="active" href="#">Inicio</a></li>
+        <li><a href="catalog_user.html">Catálogo</a></li>
+        <li><a href="cart.html">Carrito</a></li>
+        <li><a href="comprados.html">Mis Compras</a></li>
+      </ul>
+      <ul id="nav-admin" class="hidden">
+        <li><a id="admin-label" class="active">Panel Admin</a></li>
+        <li><a href="inventario.html">Inventario</a></li>
+        <li><a href="usuarios.html">Usuarios</a></li>
+        <li><a href="productos.html">Productos</a></li>
+      </ul>
+    </nav>
+
+    <div class="header__auth">
+        <a id="btn-login" href="login.html" class="btn btn--ghost hidden">Login</a>
+        <button id="btn-logout" class="btn btn--ghost hidden" onclick="logout()">Salir</button>
+    </div>
+  </div>
+</header>
+
+<div id="user-view" class="hidden">
+  <section class="hero">
+    <div class="container hero__inner">
+      <div class="hero__copy">
+        <h1>Moda urbana inspirada en el básquet</h1>
+        <p>Descubre los sneakers más exclusivos y accesorios de temporada con envíos a todo el país.</p>
+        <div style="display: flex; gap: 10px;">
+            <a class="btn" href="catalog_user.html">Ver catálogo</a>
+            <button class="btn btn--ghost">Novedades</button>
+        </div>
+      </div>
+      <div class="hero__img"></div>
+    </div>
+  </section>
+
+  <section class="filters">
+    <div class="container filters__inner">
+      <div class="chips">
+        <button class="chip is-active">Todo</button>
+        <button class="chip">Sneakers</button>
+        <button class="chip">Jerseys</button>
+        <button class="chip">Gorras</button>
+      </div>
+      <div class="sort">
+        <label for="orden">Ordenar:</label>
+        <select id="orden">
+          <option value="popular">Más populares</option>
+          <option value="precio-asc">Precio más bajo</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <main class="container">
+    <section id="home-grid" class="grid">
+      <% if (typeof productos !== 'undefined') { %>
+        <% productos.forEach(p => { %>
+          <article class="card">
+            <div class="card__img">
+              <img src="<%= p.imagen %>" alt="<%= p.nombre %>" style="width:100%; height:100%; object-fit:contain; padding:20px;">
+            </div>
+            <div class="card__body">
+              <h3 class="card__title"><%= p.nombre %></h3>
+              <p class="card__price">$<%= p.precio %></p>
+              <div class="card__actions">
+                <button class="btn" style="width:100%">Comprar</button>
+              </div>
+            </div>
+          </article>
+        <% }) %>
+      <% } %>
+    </section>
+  </main>
+</div>
+
+<div id="admin-view" class="hidden">
+  <main class="container" style="padding: 60px 20px;">
+    <h2>Gestión de Operaciones</h2>
+    <p style="color: var(--muted)">Bienvenido al panel administrativo de Ballers.</p>
+    
+    <div class="grid" style="margin-top: 30px;">
+      <article class="card">
+        <div class="card__body">
+          <h3>Inventario</h3>
+          <p>Control de stock y tallas.</p>
+          <a href="inventario.html" class="btn" style="margin-top:15px">Gestionar</a>
+        </div>
+      </article>
+      <article class="card">
+        <div class="card__body">
+          <h3>Usuarios</h3>
+          <p>Administrar cuentas de clientes.</p>
+          <a href="usuarios.html" class="btn" style="margin-top:15px">Ver lista</a>
+        </div>
+      </article>
+    </div>
+  </main>
+</div>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <small>© 2026 Ballers Store. Todos los derechos reservados.</small>
+    <div class="footer__links">
+        <a href="#">Privacidad</a> | <a href="#">Soporte</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../../js/app.js"></script>
+<script>
+  // Lógica de Roles (Mantenemos tu lógica pero con las nuevas IDs)
+  const role = localStorage.getItem('ballers_role'); 
+  const navUser = document.getElementById('nav-user');
+  const navAdmin = document.getElementById('nav-admin');
+  const userView = document.getElementById('user-view');
+  const adminView = document.getElementById('admin-view');
+  const btnLogin = document.getElementById('btn-login');
+  const btnLogout = document.getElementById('btn-logout');
+
+  if (role === 'admin' || role === 'empleado') {
+      adminView.classList.remove('hidden');
+      navAdmin.classList.remove('hidden');
+      btnLogout.classList.remove('hidden');
+      if(role === 'empleado') document.getElementById('admin-label').innerText = "Panel Empleado";
+  } else {
+      userView.classList.remove('hidden');
+      navUser.classList.remove('hidden');
+      if (role === 'cliente') {
+          btnLogout.classList.remove('hidden');
+      } else {
+          btnLogin.classList.remove('hidden');
+      }
+  }
+
+  function logout() {
+      localStorage.removeItem('ballers_role');
+      window.location.reload(); 
+  }
+
+  // Toggle menú móvil
+  document.getElementById('menu-toggle').onclick = function() {
+      document.getElementById('main-nav').classList.toggle('open');
+  };
+</script>
+</body>
+</html>

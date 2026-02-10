@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Control de usuarios | Ballers</title>
+  <link rel="stylesheet" href="../../css/base.css"/>
+
+  <style>
+    .section{background:linear-gradient(180deg,rgba(255,106,0,.06),transparent 60%),var(--panel);
+      border:1px solid #23232a;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin:18px 0}
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;margin-bottom:12px}
+    .tabs{display:flex;gap:6px}
+    .tab{border:1px solid #2a2a32;background:#141419;color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer}
+    .tab[aria-selected="true"]{background:#1f1f27;border-color:#ff6a00}
+    .search{display:flex;gap:6px}
+    .search input{padding:10px 12px;border-radius:10px;border:1px solid #2a2a32;background:#141419;color:var(--text)}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{border:1px solid #2a2a32;padding:10px}
+    .table th{background:#141419}
+    .badge{border:1px solid #2a2a32;padding:2px 8px;border-radius:999px;font-size:.85rem}
+    .btn-sm{padding:6px 10px;border-radius:8px;border:1px solid #2a2a32;background:#141419;color:var(--text);cursor:pointer}
+    .btn-primary{border-color:#ff6a00}
+    .grid-2{display:grid;gap:12px}
+    @media(min-width:860px){.grid-2{grid-template-columns:1fr 1fr}}
+    .card{background:var(--card);border:1px solid #23232a;border-radius:16px}
+    .card__body{padding:14px}
+    form .row{display:grid;gap:10px;margin-top:10px}
+    @media(min-width:620px){form .row{grid-template-columns:1fr 1fr}}
+    form input, form select{padding:10px;border-radius:10px;border:1px solid #2a2a32;background:#141419;color:var(--text)}
+    .form-actions{margin-top:10px;display:flex;gap:8px;justify-content:flex-end}
+  </style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="container header__inner">
+    <a class="logo" href="../../../../index.html">Ballers 🏀👟</a>
+  </div>
+</header>
+
+<main class="container" style="padding:22px 0 64px">
+
+<section class="section">
+  <h2>Control de usuarios</h2>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="tabs">
+      <button id="tab-clientes" class="tab" aria-selected="true">Clientes</button>
+      <button id="tab-admins" class="tab" aria-selected="false">Administradores</button>
+    </div>
+    <div class="search">
+      <input id="q" placeholder="Buscar...">
+      <button id="btn-add-open" class="btn-sm btn-primary">Agregar</button>
+    </div>
+  </div>
+
+  <!-- Alta -->
+  <div id="add-box" class="grid-2" hidden>
+    <article class="card">
+      <div class="card__body">
+        <h3>Nuevo usuario</h3>
+        <form id="form-add">
+          <div class="row">
+            <input id="add-name" placeholder="Nombre">
+            <input id="add-email" type="email" placeholder="Correo">
+          </div>
+          <div class="row">
+            <select id="add-role">
+              <option value="cliente">Cliente</option>
+              <option value="admin">Administrador</option>
+            </select>
+            <select id="add-status">
+              <option value="activo">Activo</option>
+              <option value="bloqueado">Bloqueado</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="button" id="btn-add-cancel" class="btn-sm">Cancelar</button>
+            <button type="submit" class="btn-sm btn-primary">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </article>
+  </div>
+
+  <!-- Tablas -->
+  <div id="panel-clientes">
+    <table class="table">
+      <thead>
+        <tr><th>Nombre</th><th>Correo</th><th>Estado</th></tr>
+      </thead>
+      <tbody id="tbody-clientes"></tbody>
+    </table>
+  </div>
+
+  <div id="panel-admins" hidden>
+    <table class="table">
+      <thead>
+        <tr><th>Nombre</th><th>Correo</th><th>Estado</th></tr>
+      </thead>
+      <tbody id="tbody-admins"></tbody>
+    </table>
+  </div>
+
+</section>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  const $ = s => document.querySelector(s);
+  let usuarios = [];
+
+  async function cargarUsuarios() {
+    try {
+      const res = await fetch('/admin/usuarios');
+      usuarios = await res.json();
+      render();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function render() {
+    const q = $('#q').value.toLowerCase();
+
+    $('#tbody-clientes').innerHTML = usuarios
+      .filter(u => u.rol === 'cliente')
+      .filter(u => u.nombre.toLowerCase().includes(q))
+      .map(u => fila(u))
+      .join('');
+
+    $('#tbody-admins').innerHTML = usuarios
+      .filter(u => u.rol === 'admin')
+      .filter(u => u.nombre.toLowerCase().includes(q))
+      .map(u => fila(u))
+      .join('');
+  }
+
+  function fila(u) {
+    return `
+      <tr>
+        <td>${u.nombre}</td>
+        <td>${u.correo}</td>
+        <td><span class="badge">${u.estado}</span></td>
+      </tr>
+    `;
+  }
+
+  // Tabs
+  $('#tab-clientes').onclick = () => {
+    $('#panel-clientes').hidden = false;
+    $('#panel-admins').hidden = true;
+  };
+
+  $('#tab-admins').onclick = () => {
+    $('#panel-clientes').hidden = true;
+    $('#panel-admins').hidden = false;
+  };
+
+  // Abrir formulario
+  $('#btn-add-open').onclick = () => {
+    $('#add-box').hidden = false;
+  };
+
+  // Cancelar
+  $('#btn-add-cancel').onclick = () => {
+    $('#form-add').reset();
+    $('#add-box').hidden = true;
+  };
+
+  // Guardar
+  $('#form-add').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const body = {
+      nombre: $('#add-name').value.trim(),
+      correo: $('#add-email').value.trim(),
+      rol: $('#add-role').value,
+      estado: $('#add-status').value
+    };
+
+    if (!body.nombre || !body.correo) {
+      alert('Completa todos los campos');
+      return;
+    }
+
+    try {
+      const res = await fetch('/admin/usuarios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      const r = await res.json();
+
+      if (r.ok) {
+        alert('✅ Se registró exitosamente');
+
+        $('#form-add').reset();
+        $('#add-box').hidden = true;
+        cargarUsuarios();
+      } else {
+        alert('❌ Error al guardar');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error de conexión');
+    }
+  });
+
+  // Buscar
+  $('#q').addEventListener('input', render);
+
+  // Init
+  cargarUsuarios();
+
+});
+</script>
+
+</body>
+</html>

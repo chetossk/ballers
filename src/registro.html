@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Ballers</title>
+    <link rel="stylesheet" href="../../css/base.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #121212;
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .register-card {
+            background: #ffffff;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .register-card h1 { color: #1a1a1a !important; margin-bottom: 0.5rem; }
+        .register-card p { color: #555 !important; margin-bottom: 1.5rem; }
+
+        .form-group { margin-bottom: 1.2rem; text-align: left; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 700; color: #333 !important; }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            color: #000 !important;
+            background-color: #fff !important;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background-color: #f58233;
+            color: #ffffff !important;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .btn-register:hover { background-color: #e67622; }
+
+        #msg-box {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .error { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+        .success { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+
+        .footer-links { margin-top: 1.5rem; font-size: 0.9rem; }
+        .footer-links a { color: #f58233 !important; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="register-card">
+    <h1>Únete a Ballers 🏀</h1>
+    <p>Crea tu cuenta hoy mismo</p>
+    
+    <div id="msg-box"></div>
+
+    <form id="registerForm">
+        <div class="form-group">
+            <label>Nombre completo</label>
+            <input type="text" id="reg-nombre" placeholder="Tu nombre y apellido" required>
+        </div>
+
+        <div class="form-group">
+            <label>Correo electrónico</label>
+            <input type="email" id="reg-email" placeholder="tu@correo.com" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" required>
+        </div>
+
+        <div class="form-group">
+            <label>Tipo de usuario</label>
+            <select id="reg-role">
+                <option value="cliente">Cliente</option>
+                <option value="empleado">Empleado</option>
+                <option value="admin">Administrador</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn-register">Registrarse</button>
+    </form>
+
+    <div class="footer-links">
+        ¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a>
+    </div>
+</div>
+
+<script>
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const msgBox = document.getElementById('msg-box');
+        
+        // Recopilamos todos los datos, incluyendo el nombre
+        const userData = {
+            nombre: document.getElementById('reg-nombre').value,
+            email: document.getElementById('reg-email').value,
+            password: document.getElementById('reg-password').value,
+            role: document.getElementById('reg-role').value
+        };
+
+        try {
+            const response = await fetch('http://localhost:3000/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+const result = await response.json();
+    alert(result.message);
+    if (response.ok) window.location.href = 'login.html';
+
+
+            if (response.ok) {
+                msgBox.className = 'success';
+                msgBox.innerText = "¡Cuenta creada con éxito! Redirigiendo...";
+                msgBox.style.display = 'block';
+                
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+            } else {
+                msgBox.className = 'error';
+                // Mostramos el error exacto que viene del servidor
+                msgBox.innerText = result.message || "Error al registrar";
+                msgBox.style.display = 'block';
+            }
+        } catch (err) {
+            msgBox.className = 'error';
+            msgBox.innerText = "No se pudo conectar con el servidor.";
+            msgBox.style.display = 'block';
+        }
+    });
+</script>
+
+</body>
+</html>
