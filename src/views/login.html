@@ -19,47 +19,21 @@
   </style>
 </head>
 <body>
+
   <!-- Header -->
   <header class="header">
     <div class="container header__inner">
-      <a class="logo" href="../../../index.html">Ballers <span aria-hidden="true">🏀👟</span></a>
+      <a class="logo" href="../../../index.html">
+        Ballers <span aria-hidden="true">🏀👟</span>
+      </a>
 
-      <form class="search" role="search" aria-label="Buscar productos">
-        <label class="visually-hidden" for="q">Buscar</label>
-        <input id="q" type="search" placeholder="Buscar…" />
-        <button type="submit" aria-label="Buscar">🔍</button>
-      </form>
+      <button class="nav__toggle">☰</button>
 
-      <button class="nav__toggle" aria-expanded="false" aria-controls="mainnav">☰</button>
-      <nav id="mainnav" class="nav">
+      <nav class="nav">
         <ul>
           <li><a href="../../../index.html">Inicio</a></li>
           <li><a href="catalog.html">Catálogo</a></li>
           <li><a href="intranet.html">Intranet</a></li>
-
-          <!-- Icono usuario -->
-          <li>
-            <a class="nav__user active" href="login.html" aria-label="Iniciar sesión">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
-                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="2" fill="none"/>
-              </svg>
-            </a>
-          </li>
-
-          <!-- Documentación (desplegable) -->
-          <li class="has-submenu">
-            <button class="submenu__toggle" type="button"
-                    aria-haspopup="true" aria-expanded="false" aria-controls="doc-submenu">
-              Documentación <span class="caret" aria-hidden="true">▾</span>
-            </button>
-            <ul id="doc-submenu" class="submenu" role="menu" hidden>
-              <li role="none"><a role="menuitem" href="tecnologia.html">Tecnología propuesta</a></li>
-              <li role="none"><a role="menuitem" href="infraestructura.html">Infraestructura</a></li>
-              <li role="none"><a role="menuitem" href="status.html">Status</a></li>
-              <li role="none"><a role="menuitem" href="disponibilidad.html">Disponibilidad</a></li>
-            </ul>
-          </li>
         </ul>
       </nav>
     </div>
@@ -67,43 +41,75 @@
 
   <!-- Contenido -->
   <main class="container auth-wrap">
-    <section class="auth-card" aria-labelledby="titulo-login">
-      <h2 id="titulo-login">Iniciar sesión</h2>
+    <section class="auth-card">
+      <h2>Iniciar sesión</h2>
 
-      <form id="login-form" autocomplete="on">
+      <form id="login-form">
         <div class="auth-row">
           <label for="email">Correo electrónico</label>
-          <input id="email" name="email" type="email" autocomplete="username"/>
+          <input id="email" type="email" required/>
         </div>
 
         <div class="auth-row">
           <label for="pass">Contraseña</label>
-          <input id="pass" name="pass" type="password" autocomplete="current-password"/>
+          <input id="pass" type="password" required/>
         </div>
 
         <div class="auth-actions">
-          <button class="btn" type="submit" id="btn-login">Entrar</button>
+          <button class="btn" type="submit">Entrar</button>
         </div>
 
-        <p class="alt">¿No tienes cuenta? <a href="signup.html">Crear cuenta</a></p>
+        <p class="alt">
+          ¿No tienes cuenta? <a href="signup.html">Crear cuenta</a>
+        </p>
       </form>
     </section>
   </main>
 
-  <script src="../js/app.js"></script>
+  <!-- SCRIPT CORREGIDO -->
   <script>
-    // Evita recarga por el buscador del header
-    document.querySelector('.search')?.addEventListener('submit', e => e.preventDefault());
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-    // Sesión simulada y redirección al dashboard de usuario
-    document.getElementById('login-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = (document.getElementById('email').value || '').trim();
-      localStorage.setItem('ballers_auth', 'true');
-      localStorage.setItem('ballers_user', email || 'usuario@ballers');
-      // Live Server URL del dashboard
-      window.location.href = 'user/index.html';
-    });
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('pass').value;
+
+    try {
+
+      const response = await fetch('http://localhost:3000/api/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    email: email,
+    password: pass
+  })
+});
+
+
+      const data = await response.json();
+
+      if (data.success) {
+
+        // 🔥 GUARDAR SESIÓN CORRECTAMENTE
+        localStorage.setItem('usuario_id', data.user.id);
+        localStorage.setItem('rol', data.user.rol);
+
+        // Redirigir según rol
+        if (data.user.rol === 'admin') {
+          window.location.href = 'admin/dashboard.html';
+        } else {
+          window.location.href = 'user/index.html';
+        }
+
+      } else {
+        alert("Correo o contraseña incorrectos");
+      }
+
+    } catch (error) {
+      alert("Error: Asegúrate que el servidor Node esté corriendo.");
+    }
+  });
   </script>
+
 </body>
 </html>

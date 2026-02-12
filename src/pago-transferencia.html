@@ -168,9 +168,9 @@
     const backLink = document.getElementById('link-volver');
     backLink.href = 'metodos.html' + baseQuery;
 
-    // Confirmar transferencia con 50/50 a confirmación o error
+    // Confirmar transferencia: siempre confirmación (sin error-pago)
     document.getElementById('btn-confirmar').addEventListener('click', () => {
-      const destino = Math.random() < 0.5 ? 'confirmacion.html' : 'error-pago.html';
+      const destino = 'confirmacion.html';
       window.location.href = destino + baseQuery;
     });
   </script>

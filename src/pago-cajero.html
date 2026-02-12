@@ -222,9 +222,6 @@
   </div>
 </footer>
 
-
-
-
   <script src="../../js/app.js"></script>
   <script>
     // Leer nombre y correo de la URL (vienen desde metodos.html)
@@ -240,20 +237,12 @@
     document.getElementById('hidden-nombre').value = nombre;
     document.getElementById('hidden-correo').value = correo;
 
-    // 50% confirmación / 50% error-pago al registrar pago
+    // Ya no hay random: siempre irá a confirmacion.html
     const formCajero   = document.getElementById('form-cajero');
     const chkRealizado = document.getElementById('chk-realizado');
 
     formCajero.addEventListener('submit', (e) => {
-      // si quieres obligar a marcar la casilla, descomenta:
-      // if (!chkRealizado.checked) {
-      //   e.preventDefault();
-      //   alert('Marca la casilla para confirmar que realizaste el pago en el cajero.');
-      //   return;
-      // }
-
-      const destino = Math.random() < 0.5 ? 'confirmacion.html' : 'error-pago.html';
-      formCajero.action = destino;
+      formCajero.action = 'confirmacion.html';
     });
   </script>
 </body>

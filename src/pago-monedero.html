@@ -145,9 +145,6 @@
   </div>
 </footer>
 
-
-
-
   <script src="../../js/app.js"></script>
   <script>
     // Leer nombre y correo de la URL (vienen desde metodos.html)
@@ -163,11 +160,10 @@
     document.getElementById('hidden-nombre').value = nombre;
     document.getElementById('hidden-correo').value = correo;
 
-    // 50% confirmación / 50% error-pago al usar saldo
+    // Siempre confirmación (sin error-pago) al usar saldo
     const formMonedero = document.getElementById('form-monedero');
     formMonedero.addEventListener('submit', (e) => {
-      const destino = Math.random() < 0.5 ? 'confirmacion.html' : 'error-pago.html';
-      formMonedero.action = destino;
+      formMonedero.action = 'confirmacion.html';
     });
   </script>
 </body>

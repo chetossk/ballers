@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Métricas CRM</title>
+  <link rel="stylesheet" href="../../css/base.css"/>
+</head>
+<body class="container" style="padding:40px">
+
+  <h2>Métricas CRM</h2>
+
+  <div class="card">
+    <div class="card__body">
+      <h3>Total Ventas</h3>
+      <p id="totalVentas">$0.00</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__body">
+      <h3>Ventas por Producto</h3>
+      <ul id="ventasProducto"></ul>
+    </div>
+  </div>
+
+  <script>
+    async function cargarMetricas() {
+      const res = await fetch('/api/metricas');
+      const data = await res.json();
+
+      document.getElementById('totalVentas').innerText = "$" + data.totalVentas;
+
+      const lista = document.getElementById('ventasProducto');
+      data.ventasPorProducto.forEach(p => {
+        const li = document.createElement('li');
+        li.innerText = `Producto ${p.producto_id}: ${p.total}`;
+        lista.appendChild(li);
+      });
+    }
+
+    cargarMetricas();
+  </script>
+
+</body>
+</html>
