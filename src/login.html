@@ -156,42 +156,46 @@
 </div>
 
 <script>
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const errorBox = document.getElementById('error-box');
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value; 
+    const errorBox = document.getElementById('error-box');
 
-        // Limpiar errores previos
-        errorBox.style.display = 'none';
+    errorBox.style.display = 'none';
 
-        try {
-            // Petición a tu servidor Node.js (asegúrate que el servidor esté corriendo)
-            const response = await fetch('http://localhost:3000/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
+    try {
 
-            const data = await response.json();
+        const response = await fetch('http://localhost:3000/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
 
-            if (data.success) {
-                // Guardamos el rol que el servidor extrajo de MySQL
-                localStorage.setItem('ballers_role', data.role);
-                // Redirigimos al index
-                window.location.href = 'index.html'; 
-            } else {
-                // Mostramos el error (credenciales incorrectas)
-                errorBox.innerText = data.message || "Error al iniciar sesión";
-                errorBox.style.display = 'block';
-            }
-        } catch (err) {
-            console.error("Error de conexión:", err);
-            errorBox.innerText = "Error: El servidor no responde.";
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            // 🔥 GUARDAMOS DATOS CORRECTAMENTE
+            localStorage.setItem('usuario_id', data.user.id);
+            localStorage.setItem('ballers_role', data.user.rol);
+            localStorage.setItem('nombre', data.user.nombre);
+
+            window.location.href = 'index.html';
+
+        } else {
+            errorBox.innerText = data.message || "Error al iniciar sesión";
             errorBox.style.display = 'block';
         }
-    });
+
+    } catch (err) {
+        console.error("Error de conexión:", err);
+        errorBox.innerText = "Error: El servidor no responde.";
+        errorBox.style.display = 'block';
+    }
+});
 </script>
 
 </body>
