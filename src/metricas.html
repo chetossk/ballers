@@ -2,44 +2,287 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Métricas CRM</title>
-  <link rel="stylesheet" href="../../css/base.css"/>
-</head>
-<body class="container" style="padding:40px">
-
-  <h2>Métricas CRM</h2>
-
-  <div class="card">
-    <div class="card__body">
-      <h3>Total Ventas</h3>
-      <p id="totalVentas">$0.00</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card__body">
-      <h3>Ventas por Producto</h3>
-      <ul id="ventasProducto"></ul>
-    </div>
-  </div>
-
-  <script>
-    async function cargarMetricas() {
-      const res = await fetch('/api/metricas');
-      const data = await res.json();
-
-      document.getElementById('totalVentas').innerText = "$" + data.totalVentas;
-
-      const lista = document.getElementById('ventasProducto');
-      data.ventasPorProducto.forEach(p => {
-        const li = document.createElement('li');
-        li.innerText = `Producto ${p.producto_id}: ${p.total}`;
-        lista.appendChild(li);
-      });
+  <title>Metricas del Negocio | Ballers</title>
+  <style>
+    :root {
+      --primary: #ff6a00; --secondary: #44ff88; --bg: #0b0b0f;
+      --panel: #141419; --border: #2a2a32; --radius: 12px; --danger: #ef4444;
     }
 
-    cargarMetricas();
-  </script>
+    body {
+      background-color: var(--bg);
+      color: #fff;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
 
+    .dashboard { max-width: 1100px; margin: 0 auto; }
+
+    header { margin-bottom: 30px; }
+    header h1 { font-size: 1.8rem; margin: 0; font-weight: 700; }
+    header p { color: #666; margin: 5px 0 0; font-size: 0.9rem; }
+
+    /* KPIs */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    .kpi-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 20px;
+      border-radius: var(--radius);
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .kpi-card:hover { transform: translateY(-3px); border-color: #444; }
+    .kpi-card span { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 10px; }
+    .kpi-card h2 { margin: 0; font-size: 1.6rem; color: var(--primary); }
+
+    /* Gráficas */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+    .chart-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 25px;
+      border-radius: var(--radius);
+      min-height: 350px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .chart-box h3 { margin: 0 0 20px 0; font-size: 1rem; color: #aaa; width: 100%; text-align: left; font-weight: 500; }
+
+    canvas { display: block; max-width: 100%; }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: #888;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 3px; }
+
+    /* Panel de Riesgo */
+    .risk-section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--danger);
+      padding: 20px;
+      border-radius: var(--radius);
+    }
+    .risk-section h3 { margin: 0 0 15px 0; font-size: 1rem; color: var(--danger); display: flex; align-items: center; gap: 8px; }
+    .risk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .risk-card { background: #0b0b0f; padding: 15px; border-radius: 8px; border: 1px solid #222; font-size: 0.8rem; }
+    .risk-card strong { display: block; color: #fff; margin-bottom: 4px; }
+    .risk-card span { color: #555; }
+  </style>
+</head>
+<body>
+
+<div class="dashboard">
+  <header>
+    <h1>Inteligencia de Negocio</h1>
+    <p>Análisis Integrado CRM & SCM</p>
+  </header>
+
+  <div class="kpi-row">
+    <div class="kpi-card"><span>Ingresos</span><h2 id="totalVentas">$0.00</h2></div>
+    <div class="kpi-card"><span>Clientes</span><h2 id="totalClientes">0</h2></div>
+    <div class="kpi-card"><span>Stock Crítico</span><h2 id="stockCritico" style="color:var(--danger)">0</h2></div>
+    <div class="kpi-card"><span>Reposiciones</span><h2 id="reposicionesPush">0</h2></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-box">
+      <h3>Eficiencia Logística (SCM)</h3>
+      <canvas id="chartSCM"></canvas>
+      <div id="legSCM" class="legend"></div>
+    </div>
+
+    <div class="chart-box">
+      <h3>Composición de Cartera (CRM)</h3>
+      <canvas id="chartCRM"></canvas>
+      <div id="legCRM" class="legend"></div>
+    </div>
+  </div>
+
+  <div class="risk-section">
+    <h3>⚠️ Clientes en Riesgo (Inactivos)</h3>
+    <div id="lista-riesgo" class="risk-grid">
+      <p style="color:var(--secondary); font-size:0.9rem;">Cargando datos de cartera...</p>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+  const COLORS = ['#ff6a00', '#44ff88', '#7dd3fc', '#ef4444'];
+
+  // Configuración del lienzo para alta definición
+  function setupCanvas(id) {
+    const canvas = document.getElementById(id);
+    const dpr = window.devicePixelRatio || 1;
+    const width = 340;
+    const height = 220;
+    
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+    
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    return { ctx, w: width, h: height };
+  }
+
+  async function fetchMetrics() {
+    try {
+      const response = await fetch('/api/admin/metrics');
+      const data = await response.json();
+
+      // 1. Actualizar números (KPIs)
+      document.getElementById('totalVentas').innerText = new Intl.NumberFormat('es-MX', { 
+        style: 'currency', currency: 'MXN' 
+      }).format(data.revenue || 0);
+      
+      document.getElementById('totalClientes').innerText = data.total_clientes || 0;
+      document.getElementById('stockCritico').innerText = data.stock_critico || 0;
+      document.getElementById('reposicionesPush').innerText = data.reposiciones_push || 0;
+
+      // 2. Renderizar Gráficas
+      renderSCM(data);
+      renderCRM(data);
+
+      // 3. Clientes en Riesgo
+      const riskContainer = document.getElementById('lista-riesgo');
+      if (data.clientesRiesgo && data.clientesRiesgo.length > 0) {
+        riskContainer.innerHTML = data.clientesRiesgo.map(c => `
+          <div class="risk-card">
+            <strong>${c.nombre}</strong>
+            <span>${c.correo}</span>
+          </div>
+        `).join('');
+      } else {
+        riskContainer.innerHTML = '<p style="color:var(--secondary); font-size:0.85rem;">Cartera saludable y al día.</p>';
+      }
+
+    } catch (error) {
+      console.error("Error cargando métricas:", error);
+    }
+  }
+
+  function renderSCM(data) {
+    const { ctx, w, h } = setupCanvas('chartSCM');
+    const items = [
+      { label: 'Bajo Stock', value: data.stock_critico || 0, color: COLORS[0] },
+      { label: 'Reposición', value: data.reposiciones_push || 0, color: COLORS[1] }
+    ];
+
+    const maxVal = Math.max(5, ...items.map(i => i.value));
+    const barWidth = 45;
+    const spacing = 100;
+
+    items.forEach((item, i) => {
+      const barHeight = (item.value / maxVal) * (h - 80);
+      const x = (w / 2 - 75) + (i * spacing);
+      const y = h - barHeight - 30;
+
+      // Sombra suave
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.fillRect(x + 4, y + 4, barWidth, barHeight);
+
+      // Barra
+      ctx.fillStyle = item.color;
+      ctx.fillRect(x, y, barWidth, barHeight);
+
+      // Valor sobre la barra
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 13px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(item.value, x + barWidth / 2, y - 12);
+    });
+
+    updateLegend('legSCM', items);
+  }
+
+  function renderCRM(data) {
+    const { ctx, w, h } = setupCanvas('chartCRM');
+    
+    // Obtener valores del objeto resumen o directamente de la raíz
+    const activos = data.resumen?.activos ?? data.activos ?? 0;
+    const inactivos = data.resumen?.inactivos ?? data.inactivos ?? 0;
+
+    const items = [
+      { label: 'Activos', value: activos, color: '#44ff88' },
+      { label: 'Inactivos', value: inactivos, color: '#ef4444' }
+    ];
+
+    const total = items.reduce((a, b) => a + b.value, 0);
+    const cX = w / 2, cY = h / 2 - 10;
+
+    if (total === 0) {
+      drawEmptyState(ctx, cX, cY);
+    } else {
+      let startAngle = -Math.PI / 2;
+      items.forEach(item => {
+        const slice = (2 * Math.PI * item.value) / total;
+        ctx.beginPath();
+        ctx.moveTo(cX, cY);
+        ctx.arc(cX, cY, 75, startAngle, startAngle + slice);
+        ctx.fillStyle = item.color;
+        ctx.fill();
+        startAngle += slice;
+      });
+
+      // Efecto Dona (agujero central)
+      ctx.beginPath();
+      ctx.arc(cX, cY, 48, 0, Math.PI * 2);
+      ctx.fillStyle = "#141419";
+      ctx.fill();
+    }
+
+    updateLegend('legCRM', items);
+  }
+
+  function drawEmptyState(ctx, x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, 70, 0, Math.PI * 2);
+    ctx.strokeStyle = "#2a2a32";
+    ctx.setLineDash([5, 5]);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    ctx.fillStyle = "#555";
+    ctx.textAlign = "center";
+    ctx.font = "12px sans-serif";
+    ctx.fillText("Sin datos registrados", x, y + 5);
+  }
+
+  function updateLegend(id, items) {
+    const container = document.getElementById(id);
+    container.innerHTML = items.map(it => `
+      <div class="legend-item">
+        <div class="dot" style="background:${it.color}"></div>
+        ${it.label}
+      </div>
+    `).join('');
+  }
+
+  // Inicializar al cargar
+  window.onload = fetchMetrics;
+</script>
 </body>
 </html>

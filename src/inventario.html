@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Inventario | Ballers (Admin)</title>
-  <!-- Estás en: src/assets/views/admin/ -->
   <link rel="stylesheet" href="../../css/base.css"/>
   <style>
     .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0}
@@ -14,49 +13,39 @@
     table.inv tbody tr{background:var(--panel);border:1px solid #23232a}
     table.inv tbody td{padding:12px}
     .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.85rem;border:1px solid #2a2a32}
-    .badge.ok{background:#142b18}
-    .badge.off{background:#2a1a1a}
+    .badge.ok{background:#142b18; color:#aeeabf; border-color:#2e6a3f}
+    .badge.off{background:#2a1a1a; color:#ff8a8a; border-color:#6a2e2e}
     .actions{display:flex;gap:8px;flex-wrap:wrap}
     .btn-mini{padding:6px 10px;border-radius:10px;border:1px solid #2a2a32;background:#141419;color:var(--text);cursor:pointer}
     .btn-mini:hover{background:#1b1b22}
     .btn-ghost{background:transparent}
     .section{background:linear-gradient(180deg,rgba(255,106,0,.06),transparent 60%),var(--panel);
       border:1px solid #23232a;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
-    /* Asegura el mismo formato de header que en index.html */
-    .header__inner{display:flex;align-items:center;gap:12px}
-    .nav{margin-left:auto}
   </style>
 </head>
 <body>
-  <!-- Header con el mismo formato que en index.html -->
-  <header class="header">
-    <div class="container header__inner">
-      <a class="logo" href="../../../../index.html">Ballers <span aria-hidden="true">🏀👟</span></a>
 
-      <button class="nav__toggle" aria-expanded="false" aria-controls="mainnav">☰</button>
-      <nav id="mainnav" class="nav">
+  <header class="header">
+    <div class="container header__inner" style="display:flex; align-items:center;">
+      <a class="logo" href="../../../../index.html">Ballers 🏀👟</a>
+      <nav id="mainnav" class="nav" style="margin-left:auto">
         <ul>
           <li><a href="index.html">Inicio</a></li>
-          <li><a class="active" href="inventario.html" aria-current="page">Inventario</a></li>
-          <li><a href="facturacion.html">Facturación</a></li>
-          <li><a href="usuarios.html">Control de usuarios</a></li>
-          <li><a href="pedidos.html">Estatus de pedidos</a></li>
-          <li><a href="productos.html">CRUD de productos</a></li>
-          <li><a href="analytics.html">Analíticos</a></li>
+          <li><a class="active" href="inventario.html">Inventario</a></li>
+          <li><a href="usuarios.html">Usuarios</a></li>
+          <li><a href="productos.html">Productos (CRUD)</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
-  <!-- Contenido -->
   <main class="container" style="padding:22px 0 64px">
     <section class="section">
-      <h2 style="margin:0">Inventario</h2>
-      <p class="muted" style="margin:6px 0 0">Gestiona existencias y estado de catálogo.</p>
+      <h2 style="margin:0">Inventario Real (MySQL)</h2>
+      <p class="muted" style="margin:6px 0 0">Gestiona existencias directamente en la base de datos.</p>
 
-      <!-- Barra de herramientas -->
       <div class="toolbar">
-        <input id="q" class="grow" type="search" placeholder="Buscar por nombre o SKU…" />
+        <input id="q" class="grow" type="search" placeholder="Buscar por nombre o ID..." />
         <select id="cat">
           <option value="all">Todas las categorías</option>
           <option value="sneakers">Sneakers</option>
@@ -66,168 +55,155 @@
         </select>
         <select id="sort">
           <option value="name-asc">Nombre (A–Z)</option>
-          <option value="name-desc">Nombre (Z–A)</option>
-          <option value="stock-asc">Stock (bajo→alto)</option>
-          <option value="stock-desc">Stock (alto→bajo)</option>
-          <option value="price-asc">Precio (bajo→alto)</option>
-          <option value="price-desc">Precio (alto→bajo)</option>
+          <option value="stock-asc">Menor Stock</option>
+          <option value="stock-desc">Mayor Stock</option>
         </select>
         <a class="btn" href="productos.html">Nuevo producto</a>
       </div>
 
-      <!-- Tabla -->
       <div style="overflow:auto">
-        <table class="inv" aria-describedby="tbl-info">
+        <table class="inv">
           <thead>
             <tr>
-              <th>SKU</th>
+              <th>ID</th>
               <th>Producto</th>
               <th>Categoría</th>
               <th>Precio</th>
               <th>Stock</th>
               <th>Estado</th>
-              <th style="min-width:260px">Acciones</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="tbody">
-            <!-- filas -->
-          </tbody>
+            </tbody>
         </table>
       </div>
       <p id="tbl-info" class="muted" style="margin-top:8px"></p>
     </section>
   </main>
 
-<footer class="footer" style="background:#0f0f0f; color:#ccc; padding:25px 0; margin-top:40px; font-family:'Poppins',sans-serif;">
-  <div class="container footer__inner" style="display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;">
-    <small style="color:#aaa;">© 2025 Ballers. Todos los derechos reservados.</small>
-
-    <nav aria-label="Legal" style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center;">
-      <a href="../aviso_privacidad.html" style="color:#ffd166; text-decoration:none;">Aviso de privacidad</a>
-      <a href="../terminos.html" style="color:#ffd166; text-decoration:none;">Términos y condiciones</a>
-      <a href="../cumplimiento_legal.html" style="color:#ffd166; text-decoration:none;">Cumplimiento legal</a>
-      <a href="../certificacion.html" style="color:#ffd166; text-decoration:none;">Certificación digital</a>
-      <a href="../politicas_venta.html" style="color:#ffd166; text-decoration:none;">Políticas de venta</a>
-    </nav>
-
-    <div style="margin-top:8px; color:#fff;">
-      <strong>Contacto:</strong><br>
-      Teléfono: +52 449 123 4567<br>
-      Correo: contacto@ballers.com
-    </div>
-  </div>
-</footer>
-
-
-  <script src="../../js/app.js"></script>
   <script>
-  (async () => {
-    const $ = s => document.querySelector(s);
-    const tbody = $('#tbody');
-    const q = $('#q'); const cat = $('#cat'); const sort = $('#sort');
-    const info = $('#tbl-info');
+    (async () => {
+      const $ = s => document.querySelector(s);
+      const tbody = $('#tbody');
+      const q = $('#q'); 
+      const cat = $('#cat'); 
+      const sort = $('#sort');
+      const info = $('#tbl-info');
 
-    const money = n => n.toLocaleString('es-MX',{style:'currency',currency:'MXN'});
+      const money = n => Number(n).toLocaleString('es-MX',{style:'currency',currency:'MXN'});
 
-    let products = [];
-    try{
-      const res = await fetch('../../data/products.json', { cache:'no-store' });
-      if(!res.ok) throw new Error('No se pudo cargar products.json');
-      products = await res.json();
-    }catch(err){
-      tbody.innerHTML = `<tr><td colspan="7"><p class="muted">${err.message}</p></td></tr>`;
-      return;
-    }
+      let products = []; // Aquí guardaremos lo que venga de la DB
 
-    products = products.map((p,i) => ({
-      id: p.id ?? i+1,
-      sku: p.sku ?? ('SKU' + String(p.id ?? i+1).padStart(4,'0')),
-      name: p.name ?? 'Producto',
-      category: p.category ?? 'otros',
-      price: Number(p.price ?? 0),
-      stock: Number(p.stock ?? ((i*7)%40 + 5)),
-      active: (p.active ?? true)
-    }));
-
-    let current = [...products];
-
-    function applyFilters(){
-      const term = q.value.trim().toLowerCase();
-      const c = cat.value;
-      current = products.filter(p => {
-        const inText = !term || p.name.toLowerCase().includes(term) || String(p.sku).toLowerCase().includes(term);
-        const inCat = (c === 'all') || p.category === c;
-        return inText && inCat;
-      });
-    }
-
-    function applySort(){
-      const v = sort.value;
-      const map = {
-        'name-asc':  (a,b)=>a.name.localeCompare(b.name),
-        'name-desc': (a,b)=>b.name.localeCompare(a.name),
-        'stock-asc': (a,b)=>a.stock-b.stock,
-        'stock-desc':(a,b)=>b.stock-a.stock,
-        'price-asc': (a,b)=>a.price-b.price,
-        'price-desc':(a,b)=>b.price-a.price,
-      };
-      current.sort(map[v] || map['name-asc']);
-    }
-
-    function rowTemplate(p){
-      const badge = p.active
-        ? `<span class="badge ok">Activo</span>`
-        : `<span class="badge off">Inactivo</span>`;
-      return `
-        <tr data-id="${p.id}">
-          <td>${p.sku}</td>
-          <td>${p.name}</td>
-          <td>${p.category}</td>
-          <td>${money(p.price)}</td>
-          <td><strong>${p.stock}</strong></td>
-          <td>${badge}</td>
-          <td class="actions">
-            <button class="btn-mini" data-dec="${p.id}">−</button>
-            <button class="btn-mini" data-inc="${p.id}">+</button>
-            <a class="btn-mini" href="productos.html#edit-${p.id}">Editar</a>
-            <button class="btn-mini btn-ghost" data-toggle="${p.id}">${p.active ? 'Desactivar' : 'Activar'}</button>
-          </td>
-        </tr>`;
-    }
-
-    function render(){
-      if(!current.length){
-        tbody.innerHTML = `<tr><td colspan="7"><p class="muted">Sin resultados.</p></td></tr>`;
-        info.textContent = '';
-        return;
+      // FUNCIÓN PARA CARGAR DESDE LA API
+      async function loadInventario() {
+        try {
+          const res = await fetch('/api/inventario');
+          if (!res.ok) throw new Error('Error al conectar con la API');
+          const data = await res.json();
+          
+          products = data.map(p => ({
+            id: p.id,
+            sku: 'ID-' + String(p.id).padStart(3, '0'),
+            name: p.nombre,
+            category: (p.categoria || 'varios').toLowerCase(),
+            price: Number(p.precio),
+            stock: Number(p.stock || 0),
+            active: p.active === 1 || p.active === true
+          }));
+          
+          render();
+        } catch (err) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">Error: ${err.message}</td></tr>`;
+        }
       }
-      tbody.innerHTML = current.map(rowTemplate).join('');
-      info.textContent = `${current.length} producto(s) mostrados`;
-    }
 
-    q.addEventListener('input', ()=>{ applyFilters(); applySort(); render(); });
-    cat.addEventListener('change', ()=>{ applyFilters(); applySort(); render(); });
-    sort.addEventListener('change', ()=>{ applySort(); render(); });
+      function render() {
+        // Filtros
+        const term = q.value.toLowerCase();
+        const categoryFilter = cat.value;
+        
+        let filtered = products.filter(p => {
+          const matchText = p.name.toLowerCase().includes(term) || p.sku.toLowerCase().includes(term);
+          const matchCat = categoryFilter === 'all' || p.category === categoryFilter;
+          return matchText && matchCat;
+        });
 
-    tbody.addEventListener('click', (e)=>{
-      const inc = e.target.closest('[data-inc]');
-      const dec = e.target.closest('[data-dec]');
-      const tog = e.target.closest('[data-toggle]');
-      if(!inc && !dec && !tog) return;
+        // Orden
+        if (sort.value === 'stock-asc') filtered.sort((a,b) => a.stock - b.stock);
+        if (sort.value === 'stock-desc') filtered.sort((a,b) => b.stock - a.stock);
+        if (sort.value === 'name-asc') filtered.sort((a,b) => a.name.localeCompare(b.name));
 
-      const id = Number(inc?.dataset.inc || dec?.dataset.dec || tog?.dataset.toggle);
-      const item = products.find(p=>p.id==id);
-      if(!item) return;
+        if (filtered.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">No se encontraron productos.</td></tr>';
+          return;
+        }
 
-      if(inc){ item.stock += 1; }
-      if(dec){ item.stock = Math.max(0, item.stock - 1); }
-      if(tog){ item.active = !item.active; }
+        tbody.innerHTML = filtered.map(p => `
+          <tr>
+            <td>${p.sku}</td>
+            <td><strong>${p.name}</strong></td>
+            <td style="text-transform: capitalize;">${p.category}</td>
+            <td>${money(p.price)}</td>
+            <td><strong style="font-size: 1.1rem; color: ${p.stock < 5 ? '#ff6b6b' : 'inherit'}">${p.stock}</strong></td>
+            <td><span class="badge ${p.active ? 'ok' : 'off'}">${p.active ? 'Activo' : 'Inactivo'}</span></td>
+            <td class="actions">
+              <button class="btn-mini" onclick="updateStock(${p.id}, -1)">−</button>
+              <button class="btn-mini" onclick="updateStock(${p.id}, 1)">+</button>
+              <button class="btn-mini btn-ghost" onclick="toggleStatus(${p.id})">${p.active ? 'Desactivar' : 'Activar'}</button>
+            </td>
+          </tr>
+        `).join('');
 
-      applyFilters(); applySort(); render();
-    });
+        info.textContent = `Mostrando ${filtered.length} productos de la base de datos.`;
+      }
 
-    applyFilters(); applySort(); render();
-  })();
+      // ACCIÓN: ACTUALIZAR STOCK EN DB
+      window.updateStock = async (id, delta) => {
+        const item = products.find(p => p.id === id);
+        const nuevoStock = Math.max(0, item.stock + delta);
+        
+        try {
+          const res = await fetch(`/api/inventario/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stock: nuevoStock, active: item.active ? 1 : 0 })
+          });
+          
+          if (res.ok) {
+            item.stock = nuevoStock;
+            render();
+          }
+        } catch (e) { alert("Error al actualizar stock"); }
+      };
+
+      // ACCIÓN: CAMBIAR ESTADO EN DB
+      window.toggleStatus = async (id) => {
+        const item = products.find(p => p.id === id);
+        const nuevoEstado = !item.active;
+
+        try {
+          const res = await fetch(`/api/inventario/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stock: item.stock, active: nuevoEstado ? 1 : 0 })
+          });
+          
+          if (res.ok) {
+            item.active = nuevoEstado;
+            render();
+          }
+        } catch (e) { alert("Error al cambiar estado"); }
+      };
+
+      // Eventos de búsqueda
+      q.addEventListener('input', render);
+      cat.addEventListener('change', render);
+      sort.addEventListener('change', render);
+
+      // Carga inicial
+      loadInventario();
+    })();
   </script>
 </body>
 </html>

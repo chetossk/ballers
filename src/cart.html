@@ -5,18 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Carrito | Ballers</title>
   <link rel="stylesheet" href="../../css/base.css"/>
+  <style>
+    .cart-item {
+      display: grid;
+      grid-template-columns: 100px 1fr auto;
+      gap: 20px;
+      align-items: center;
+      background: var(--panel);
+      padding: 15px;
+      border-radius: var(--radius);
+      border: 1px solid #23232a;
+      margin-bottom: 12px;
+    }
+    .cart-item img {
+      width: 100%;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .total-section {
+      background: #111;
+      padding: 20px;
+      border-radius: var(--radius);
+      margin-top: 20px;
+      border-top: 2px solid var(--accent);
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Header -->
   <header class="header">
     <div class="container header__inner">
-      <a class="logo" href="../../../../index.html">
-        Ballers <span aria-hidden="true">🏀👟</span>
-      </a>
-
-      <button class="nav__toggle">☰</button>
-
+      <a class="logo" href="../../../../index.html">Ballers 🏀👟</a>
       <nav class="nav">
         <ul>
           <li><a href="index.html">Inicio</a></li>
@@ -30,119 +55,118 @@
 
   <main class="container" style="padding:22px 0 64px">
     <section class="section">
-      <h2 style="margin-bottom:12px">Carrito</h2>
+      <h2 style="margin-bottom: 20px;">Tu Carrito de Compras</h2>
 
-      <div id="cart-list"></div>
-      <div id="cart-total" style="margin-top:14px;font-weight:800"></div>
+      <div id="cart-list">
+        </div>
 
-      <div style="margin-top:18px;">
-        <button id="btn-finalizar" class="btn">
-          Finalizar compra
+      <div id="cart-summary" class="total-section" style="display: none;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+          <span>Subtotal:</span>
+          <span id="subtotal-val">$0.00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: 800;">
+          <span>Total:</span>
+          <span id="total-val" style="color: var(--accent);">$0.00</span>
+        </div>
+        
+        <button id="btn-ir-a-pago" class="btn" style="width: 100%; margin-top: 20px; height: 55px; font-size: 1.1rem;">
+          Continuar al Pago Seguro
         </button>
       </div>
 
-      <p id="cart-msg" style="margin-top:10px"></p>
+      <div id="empty-msg" style="text-align: center; padding: 40px; display: none;">
+        <p class="muted">Tu carrito está vacío actualmente.</p>
+        <a href="catalog_user.html" class="btn--ghost" style="display: inline-block; margin-top: 15px;">Ir a la tienda</a>
+      </div>
     </section>
   </main>
 
-  <footer class="footer" style="background:#0f0f0f; color:#ccc; padding:25px 0;">
-    <div class="container footer__inner" style="text-align:center;">
-      <small>© 2025 Ballers. Todos los derechos reservados.</small>
-    </div>
-  </footer>
-
   <script>
-  (async () => {
+    (async () => {
+      const listEl = document.getElementById('cart-list');
+      const summaryEl = document.getElementById('cart-summary');
+      const emptyEl = document.getElementById('empty-msg');
+      const totalVal = document.getElementById('total-val');
+      const subtotalVal = document.getElementById('subtotal-val');
 
-    const listEl  = document.getElementById('cart-list');
-    const totalEl = document.getElementById('cart-total');
-    const msgEl   = document.getElementById('cart-msg');
-    const btnFinalizar = document.getElementById('btn-finalizar');
+      const userId = localStorage.getItem('ballers_id') || 9;
+      const money = n => Number(n).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
-   const usuarioId = localStorage.getItem('ballers_user_id');
+      let cart = [];
 
+      async function loadCart() {
+        try {
+          const res = await fetch('/api/carrito', {
+            headers: { 'x-user-id': userId }
+          });
+          cart = await res.json();
+          render();
+        } catch (e) {
+          console.error("Error cargando carrito", e);
+        }
+      }
 
-    if (!usuarioId) {
-      alert("Debes iniciar sesión.");
-      window.location.href = "login.html";
-      return;
-    }
-
-    const money = n =>
-      Number(n).toLocaleString('es-MX', { style:'currency', currency:'MXN' });
-
-    // 🔥 CARGAR CARRITO REAL DESDE BD
-    async function cargarCarrito() {
-
-      try {
-
-        const res = await fetch(`/api/carrito/${usuarioId}`);
-        const carrito = await res.json();
-
-        if (!carrito.length) {
-          listEl.innerHTML = `
-            <article class="card" style="padding:16px">
-              <h3>Tu carrito está vacío</h3>
-            </article>`;
-          totalEl.textContent = '';
-          btnFinalizar.style.display = "none";
+      function render() {
+        if (cart.length === 0) {
+          listEl.innerHTML = '';
+          summaryEl.style.display = 'none';
+          emptyEl.style.display = 'block';
           return;
         }
 
-        btnFinalizar.style.display = "inline-block";
+        emptyEl.style.display = 'none';
+        summaryEl.style.display = 'block';
 
-        listEl.innerHTML = carrito.map(item => `
-          <article class="card" style="padding:16px;margin-bottom:10px">
-            <h3>${item.nombre}</h3>
-            <p>${money(item.precio)} x ${item.cantidad}</p>
-          </article>
+        listEl.innerHTML = cart.map(item => `
+          <div class="cart-item" data-id="${item.id}">
+            <img src="${item.image || '/assets/img/placeholder.jpg'}" alt="${item.name}">
+            <div>
+              <h3 style="margin:0">${item.name}</h3>
+              <p class="muted" style="margin:5px 0">${money(item.price)}</p>
+            </div>
+            <div class="qty-controls">
+              <button class="btn--ghost" onclick="updateQty(${item.id}, ${item.quantity - 1})">-</button>
+              <span style="font-weight:bold; min-width:20px; text-align:center">${item.quantity}</span>
+              <button class="btn--ghost" onclick="updateQty(${item.id}, ${item.quantity + 1})">+</button>
+              <button class="btn" onclick="deleteItem(${item.id})" style="background:#441111; margin-left:10px">✕</button>
+            </div>
+          </div>
         `).join('');
 
-        const total = carrito.reduce(
-          (t, i) => t + (Number(i.precio) * i.cantidad),
-          0
-        );
-
-        totalEl.textContent = "Total: " + money(total);
-
-      } catch (error) {
-        console.error(error);
-        msgEl.textContent = "Error cargando carrito.";
+        const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        totalVal.innerText = money(total);
+        subtotalVal.innerText = money(total);
       }
-    }
 
-    // 🔥 FINALIZAR COMPRA
-    async function finalizarCompra() {
-
-      try {
-
-        const res = await fetch('/api/finalizar-compra', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ usuario_id: usuarioId })
+      window.updateQty = async (id, newQty) => {
+        if (newQty < 1) return;
+        await fetch(`/api/carrito/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+          body: JSON.stringify({ cantidad: newQty })
         });
+        loadCart();
+      };
 
-        const data = await res.json();
+      window.deleteItem = async (id) => {
+        if (!confirm("¿Eliminar este producto?")) return;
+        await fetch(`/api/carrito/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-user-id': userId }
+        });
+        loadCart();
+      };
 
-        if (res.ok) {
-          alert("Compra realizada correctamente 🛒");
-          cargarCarrito(); // recargar carrito vacío
-        } else {
-          alert(data.error || "Error al finalizar compra");
-        }
+      // BOTÓN HACIA LA PÁGINA DE PAGO
+      document.getElementById('btn-ir-a-pago').addEventListener('click', () => {
+        const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        // Redirigimos a pago.html con el total en la URL
+        window.location.href = `pago.html?total=${total}`;
+      });
 
-      } catch (error) {
-        console.error(error);
-        alert("Error de conexión con el servidor");
-      }
-    }
-
-    btnFinalizar.addEventListener("click", finalizarCompra);
-
-    cargarCarrito();
-
-  })();
+      loadCart();
+    })();
   </script>
-
 </body>
 </html>

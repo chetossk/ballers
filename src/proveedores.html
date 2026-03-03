@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin | Gestión de Proveedores SCM</title>
+  <link rel="stylesheet" href="css/base.css">
+  <style>
+    :root {
+      --primary: #ff6a00; --bg: #0b0b0f; --panel: #141419; 
+      --border: #2a2a32; --radius: 12px;
+    }
+    body { background-color: var(--bg); color: #fff; font-family: 'Inter', sans-serif; margin: 0; }
+    
+    /* Barra de Navegación Admin */
+    .admin-nav {
+      background: var(--panel); border-bottom: 1px solid var(--border);
+      padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .admin-nav .logo { font-weight: bold; color: var(--primary); font-size: 1.2rem; text-decoration: none; }
+    .nav-links { display: flex; gap: 20px; list-style: none; margin: 0; }
+    .nav-links a { color: #888; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
+    .nav-links a:hover, .nav-links a.active { color: #fff; }
+
+    .content { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+    .grid { display: grid; grid-template-columns: 380px 1fr; gap: 30px; }
+    
+    .card { background: var(--panel); border: 1px solid var(--border); padding: 25px; border-radius: var(--radius); }
+    h2 { font-size: 1rem; text-transform: uppercase; color: var(--primary); margin-bottom: 20px; }
+
+    /* Formulario */
+    .field { margin-bottom: 15px; }
+    label { display: block; font-size: 0.7rem; color: #666; text-transform: uppercase; margin-bottom: 5px; }
+    input, select {
+      width: 100%; padding: 12px; background: #0b0b0f; border: 1px solid var(--border);
+      color: #fff; border-radius: 8px; font-size: 0.9rem;
+    }
+    .btn-add {
+      width: 100%; padding: 14px; background: var(--primary); color: #fff;
+      border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px;
+    }
+
+    /* Tabla */
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 0.7rem; color: #555; padding: 10px; border-bottom: 2px solid var(--border); }
+    td { padding: 15px 10px; border-bottom: 1px solid #1f1f25; font-size: 0.9rem; }
+    .cat-tag { background: #2a2a32; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; color: #ccc; }
+  </style>
+</head>
+<body>
+
+  <nav class="admin-nav">
+    <a href="index.html" class="logo">BALLERS ADMIN</a>
+    <ul class="nav-links">
+      <li><a href="inventario.html">Inventario</a></li>
+      <li><a href="usuarios.html">Usuarios</a></li>
+      <li><a href="pedidos.html">Pedidos</a></li>
+      <li><a href="proveedores.html" class="active">Proveedores</a></li>
+      <li><a href="analytics.html">Analíticos</a></li>
+    </ul>
+  </nav>
+
+  <div class="content">
+    <div class="grid">
+      <section class="card">
+        <h2>Nuevo Proveedor SCM</h2>
+        <div class="field">
+          <label>Nombre Comercial</label>
+          <input type="text" id="nombre" placeholder="Ej: Nike Mexico S.A.">
+        </div>
+        <div class="field">
+          <label>Representante</label>
+          <input type="text" id="contacto" placeholder="Nombre del vendedor">
+        </div>
+        <div class="field">
+          <label>Correo Electrónico</label>
+          <input type="email" id="email" placeholder="ventas@empresa.com">
+        </div>
+        <div class="field">
+          <label>Categoría SCM</label>
+          <select id="categoria">
+            <option value="Calzado">Calzado (Sneakers)</option>
+            <option value="Ropa">Ropa (Jerseys/Apparel)</option>
+            <option value="Accesorios">Accesorios (Balones/Equipo)</option>
+          </select>
+        </div>
+        <button class="btn-add" onclick="registrar()">DAR DE ALTA</button>
+      </section>
+
+      <section class="card">
+        <h2>Directorio de Socios Comerciales</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Empresa</th>
+              <th>Contacto</th>
+              <th>Categoría</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tablaBody">
+            </tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    async function cargar() {
+      const res = await fetch('/api/proveedores');
+      const data = await res.json();
+      document.getElementById('tablaBody').innerHTML = data.map(p => `
+        <tr>
+          <td><b style="color:var(--primary)">${p.nombre}</b><br><small style="color:#666">${p.email}</small></td>
+          <td>${p.contacto}</td>
+          <td><span class="cat-tag">${p.categoria}</span></td>
+          <td style="color:#44ff88">● Activo</td>
+        </tr>
+      `).join('');
+    }
+
+    async function registrar() {
+      const payload = {
+        nombre: document.getElementById('nombre').value,
+        contacto: document.getElementById('contacto').value,
+        email: document.getElementById('email').value,
+        categoria: document.getElementById('categoria').value
+      };
+
+      if(!payload.nombre) return alert("El nombre es obligatorio");
+
+      const res = await fetch('/api/proveedores', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+
+      if(res.ok) {
+        alert("Proveedor registrado con éxito en la cadena de suministro");
+        location.reload();
+      }
+    }
+
+    window.onload = cargar;
+  </script>
+</body>
+</html>

@@ -3,71 +3,125 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Control de usuarios | Ballers</title>
+  <title>Panel Integral CRM & Usuarios | Ballers</title>
   <link rel="stylesheet" href="../../css/base.css"/>
 
   <style>
-    .section{background:linear-gradient(180deg,rgba(255,106,0,.06),transparent 60%),var(--panel);
-      border:1px solid #23232a;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin:18px 0}
-    .toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;margin-bottom:12px}
-    .tabs{display:flex;gap:6px}
-    .tab{border:1px solid #2a2a32;background:#141419;color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer}
-    .tab[aria-selected="true"]{background:#1f1f27;border-color:#ff6a00}
-    .search{display:flex;gap:6px}
-    .search input{padding:10px 12px;border-radius:10px;border:1px solid #2a2a32;background:#141419;color:var(--text)}
-    .table{width:100%;border-collapse:collapse}
-    .table th,.table td{border:1px solid #2a2a32;padding:10px}
-    .table th{background:#141419}
-    .badge{border:1px solid #2a2a32;padding:2px 8px;border-radius:999px;font-size:.85rem}
-    .btn-sm{padding:6px 10px;border-radius:8px;border:1px solid #2a2a32;background:#141419;color:var(--text);cursor:pointer}
-    .btn-primary{border-color:#ff6a00}
-    .grid-2{display:grid;gap:12px}
-    @media(min-width:860px){.grid-2{grid-template-columns:1fr 1fr}}
-    .card{background:var(--card);border:1px solid #23232a;border-radius:16px}
-    .card__body{padding:14px}
-    form .row{display:grid;gap:10px;margin-top:10px}
-    @media(min-width:620px){form .row{grid-template-columns:1fr 1fr}}
-    form input, form select{padding:10px;border-radius:10px;border:1px solid #2a2a32;background:#141419;color:var(--text)}
-    .form-actions{margin-top:10px;display:flex;gap:8px;justify-content:flex-end}
+    :root {
+      --primary: #ff6a00; --secondary: #44ff88; --bg: #0b0b0f;
+      --panel: #141419; --border: #2a2a32; --radius: 16px;
+    }
+    body { background-color: var(--bg); color: #fff; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
+    
+    .section {
+      background: linear-gradient(180deg, rgba(255,106,0,0.06), transparent 60%), var(--panel);
+      border: 1px solid #23232a; border-radius: var(--radius); padding: 22px; margin-bottom: 20px;
+    }
+
+    /* Layout CRM */
+    .crm-grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; margin-top: 15px; }
+    .crm-form { background: #0b0b0f; padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
+    .crm-form label { display: block; font-size: 0.75rem; color: #888; margin-bottom: 5px; }
+    .crm-form select, .crm-form textarea { 
+      width: 100%; margin-bottom: 12px; background: #141419; color: white; 
+      border: 1px solid var(--border); border-radius: 8px; padding: 10px; box-sizing: border-box;
+    }
+    
+    /* Línea de Tiempo */
+    .timeline { border-left: 2px solid var(--primary); padding-left: 20px; max-height: 300px; overflow-y: auto; }
+    .timeline-item { background: #1c1c21; border: 1px solid var(--border); padding: 15px; border-radius: 12px; margin-bottom: 15px; position: relative; }
+    .timeline-item::before { content: ""; position: absolute; left: -31px; top: 15px; width: 14px; height: 14px; background: var(--primary); border-radius: 50%; border: 3px solid var(--bg); }
+
+    /* Toolbar y Filtros */
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .tabs { display: flex; gap: 6px; }
+    .tab { border: 1px solid var(--border); background: #141419; color: #fff; padding: 8px 16px; border-radius: 10px; cursor: pointer; }
+    .tab[aria-selected="true"] { border-color: var(--primary); color: var(--primary); background: #1f1f27; }
+    
+    .filters-group { display: flex; gap: 8px; }
+    .filters-group input, .filters-group select { padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: #141419; color: #fff; outline: none; }
+    .filters-group input:focus { border-color: var(--primary); }
+
+    /* Tablas */
+    .table { width: 100%; border-collapse: collapse; }
+    .table th, .table td { border: 1px solid var(--border); padding: 12px; text-align: left; }
+    .table th { background: #0b0b0f; color: #888; font-size: 0.8rem; text-transform: uppercase; }
+    
+    .badge { padding: 4px 10px; border-radius: 999px; font-size: .75rem; font-weight: bold; border: 1px solid; }
+    .badge-activo { border-color: #22c55e; color: #22c55e; background: rgba(34,197,94,0.1); }
+    .badge-bloqueado { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.1); }
+
+    .btn-primary { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    
+    /* Caja de agregar usuario */
+    .grid-2 { display: grid; gap: 12px; margin-bottom: 20px; grid-template-columns: 1fr 1fr; }
+    .card { background: #1c1c21; border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
   </style>
 </head>
-
 <body>
 
-<header class="header">
-  <div class="container header__inner">
-    <a class="logo" href="../../../../index.html">Ballers 🏀👟</a>
-  </div>
-</header>
+<main class="container">
+  
+  <section class="section">
+    <h2 style="margin-top:0">Módulo CRM: Seguimiento de Clientes</h2>
+    <div class="crm-grid">
+      <div class="crm-form">
+        <label>Seleccionar Cliente</label>
+        <select id="crm-cliente"><option>Cargando clientes...</option></select>
+        
+        <label>Canal de Comunicación</label>
+        <select id="crm-tipo">
+          <option value="Llamada">Llamada Telefónica</option>
+          <option value="WhatsApp">WhatsApp</option>
+          <option value="Correo">Correo Electrónico</option>
+          <option value="Visita">Visita Presencial</option>
+        </select>
+        
+        <label>Nota de la Interacción</label>
+        <textarea id="crm-nota" placeholder="Escribe detalles del contacto..."></textarea>
+        
+        <button onclick="guardarInteraccion()" class="btn-primary" style="width:100%">REGISTRAR NOTA</button>
+      </div>
 
-<main class="container" style="padding:22px 0 64px">
-
-<section class="section">
-  <h2>Control de usuarios</h2>
-
-  <!-- Toolbar -->
-  <div class="toolbar">
-    <div class="tabs">
-      <button id="tab-clientes" class="tab" aria-selected="true">Clientes</button>
-      <button id="tab-admins" class="tab" aria-selected="false">Administradores</button>
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+          <h3 style="margin:0; font-size:1rem">Línea de Tiempo Reciente</h3>
+          <button onclick="cargarHistorial()" class="btn-sm" style="background:transparent; border:none; color:var(--primary); cursor:pointer">🔄 Actualizar</button>
+        </div>
+        <div id="timeline-container" class="timeline"></div>
+      </div>
     </div>
-    <div class="search">
-      <input id="q" placeholder="Buscar...">
-      <button id="btn-add-open" class="btn-sm btn-primary">Agregar</button>
-    </div>
-  </div>
+  </section>
 
-  <!-- Alta -->
-  <div id="add-box" class="grid-2" hidden>
-    <article class="card">
-      <div class="card__body">
-        <h3>Nuevo usuario</h3>
+  <section class="section">
+    <h2>Administración de Usuarios</h2>
+    
+    <div class="toolbar">
+      <div class="tabs">
+        <button id="tab-clientes" class="tab" aria-selected="true">Clientes</button>
+        <button id="tab-admins" class="tab" aria-selected="false">Administradores</button>
+      </div>
+      
+      <div class="filters-group">
+        <input id="q" placeholder="Buscar por nombre o correo...">
+        <select id="filter-status">
+          <option value="todos">Todos los estados</option>
+          <option value="activo">Activos</option>
+          <option value="bloqueado">Bloqueados</option>
+        </select>
+        <button id="btn-add-open" class="btn-primary" style="padding: 8px 15px;">+ Nuevo</button>
+      </div>
+    </div>
+
+    <div id="add-box" hidden style="margin-bottom:20px">
+      <div class="card">
+        <h3>Registrar Nuevo Usuario</h3>
         <form id="form-add">
-          <div class="row">
-            <input id="add-name" placeholder="Nombre">
-            <input id="add-email" type="email" placeholder="Correo">
+          <div class="grid-2">
+            <input id="add-name" placeholder="Nombre completo" required>
+            <input id="add-email" type="email" placeholder="Correo electrónico" required>
           </div>
-          <div class="row">
+          <div class="grid-2" style="margin-top:10px">
             <select id="add-role">
               <option value="cliente">Cliente</option>
               <option value="admin">Administrador</option>
@@ -77,149 +131,156 @@
               <option value="bloqueado">Bloqueado</option>
             </select>
           </div>
-          <div class="form-actions">
-            <button type="button" id="btn-add-cancel" class="btn-sm">Cancelar</button>
-            <button type="submit" class="btn-sm btn-primary">Guardar</button>
+          <div style="text-align:right; margin-top:15px">
+            <button type="button" id="btn-add-cancel" style="background:transparent; color:#888; border:none; margin-right:15px; cursor:pointer">Cancelar</button>
+            <button type="submit" class="btn-primary">Guardar Usuario</button>
           </div>
         </form>
       </div>
-    </article>
-  </div>
+    </div>
 
-  <!-- Tablas -->
-  <div id="panel-clientes">
-    <table class="table">
-      <thead>
-        <tr><th>Nombre</th><th>Correo</th><th>Estado</th></tr>
-      </thead>
-      <tbody id="tbody-clientes"></tbody>
-    </table>
-  </div>
-
-  <div id="panel-admins" hidden>
-    <table class="table">
-      <thead>
-        <tr><th>Nombre</th><th>Correo</th><th>Estado</th></tr>
-      </thead>
-      <tbody id="tbody-admins"></tbody>
-    </table>
-  </div>
-
-</section>
+    <div id="panel-clientes">
+      <table class="table">
+        <thead><tr><th>Nombre</th><th>Correo</th><th>Estado</th></tr></thead>
+        <tbody id="tbody-clientes"></tbody>
+      </table>
+    </div>
+    <div id="panel-admins" hidden>
+      <table class="table">
+        <thead><tr><th>Nombre</th><th>Correo</th><th>Estado</th></tr></thead>
+        <tbody id="tbody-admins"></tbody>
+      </table>
+    </div>
+  </section>
 </main>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-
   const $ = s => document.querySelector(s);
   let usuarios = [];
 
+  async function cargarTodo() {
+    await cargarUsuarios();
+    await cargarHistorial();
+  }
+
+  // 1. CARGAR USUARIOS Y LLENAR SELECTS
   async function cargarUsuarios() {
     try {
-      const res = await fetch('/admin/usuarios');
+      const res = await fetch('/api/usuarios');
       usuarios = await res.json();
+      
+      // Llenar select del CRM
+      const selectCRM = $('#crm-cliente');
+      selectCRM.innerHTML = usuarios.filter(u => u.rol === 'cliente')
+        .map(u => `<option value="${u.id}">${u.nombre}</option>`).join('') || '<option>No hay clientes</option>';
+      
       render();
-    } catch (e) {
-      console.error(e);
+    } catch (e) { console.error("Error cargando usuarios", e); }
+  }
+
+  // 2. CARGAR HISTORIAL CRM
+  window.cargarHistorial = async function() {
+    const container = $('#timeline-container');
+    try {
+      const res = await fetch('/api/crm/historial');
+      const data = await res.json();
+      container.innerHTML = data.map(item => `
+        <div class="timeline-item">
+          <strong style="color:var(--primary)">${item.cliente_nombre}</strong> 
+          <small style="color:#666; margin-left:10px">${item.tipo}</small>
+          <p style="margin:8px 0; color:#ccc; font-size:0.9rem">${item.descripcion}</p>
+          <span style="font-size:0.7rem; color:#555">${new Date(item.fecha).toLocaleString()}</span>
+        </div>
+      `).join('') || '<p>No hay interacciones.</p>';
+    } catch (e) { container.innerHTML = "Error al cargar el historial."; }
+  }
+
+  // 3. GUARDAR INTERACCIÓN
+  window.guardarInteraccion = async function() {
+    const nota = $('#crm-nota').value;
+    if(!nota) return alert("Escribe una nota antes de guardar");
+
+    const payload = {
+      usuario_id: $('#crm-cliente').value,
+      tipo: $('#crm-tipo').value,
+      descripcion: nota
+    };
+
+    const res = await fetch('/api/crm/interaccion', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+
+    if(res.ok) {
+      $('#crm-nota').value = "";
+      await cargarHistorial();
     }
   }
 
+  // 4. RENDERIZAR TABLAS CON FILTROS (RESTAURADO)
   function render() {
-    const q = $('#q').value.toLowerCase();
+    const query = $('#q').value.toLowerCase();
+    const status = $('#filter-status').value;
 
-    $('#tbody-clientes').innerHTML = usuarios
-      .filter(u => u.rol === 'cliente')
-      .filter(u => u.nombre.toLowerCase().includes(q))
-      .map(u => fila(u))
-      .join('');
+    const filtrar = (rol) => usuarios.filter(u => 
+      u.rol === rol && 
+      (u.nombre.toLowerCase().includes(query) || u.correo.toLowerCase().includes(query)) &&
+      (status === 'todos' || u.estado === status)
+    );
 
-    $('#tbody-admins').innerHTML = usuarios
-      .filter(u => u.rol === 'admin')
-      .filter(u => u.nombre.toLowerCase().includes(q))
-      .map(u => fila(u))
-      .join('');
-  }
-
-  function fila(u) {
-    return `
+    const buildTable = (data) => data.map(u => `
       <tr>
-        <td>${u.nombre}</td>
+        <td><strong>${u.nombre}</strong></td>
         <td>${u.correo}</td>
-        <td><span class="badge">${u.estado}</span></td>
+        <td><span class="badge ${u.estado === 'activo' ? 'badge-activo' : 'badge-bloqueado'}">${u.estado}</span></td>
       </tr>
-    `;
+    `).join('') || '<tr><td colspan="3" style="text-align:center">Sin resultados</td></tr>';
+
+    $('#tbody-clientes').innerHTML = buildTable(filtrar('cliente'));
+    $('#tbody-admins').innerHTML = buildTable(filtrar('admin'));
   }
 
-  // Tabs
+  // EVENTOS DE FILTRADO Y TABS
+  $('#q').oninput = render;
+  $('#filter-status').onchange = render;
+
   $('#tab-clientes').onclick = () => {
-    $('#panel-clientes').hidden = false;
-    $('#panel-admins').hidden = true;
+    $('#tab-clientes').setAttribute('aria-selected', 'true'); $('#tab-admins').setAttribute('aria-selected', 'false');
+    $('#panel-clientes').hidden = false; $('#panel-admins').hidden = true;
   };
-
   $('#tab-admins').onclick = () => {
-    $('#panel-clientes').hidden = true;
-    $('#panel-admins').hidden = false;
+    $('#tab-admins').setAttribute('aria-selected', 'true'); $('#tab-clientes').setAttribute('aria-selected', 'false');
+    $('#panel-clientes').hidden = true; $('#panel-admins').hidden = false;
   };
 
-  // Abrir formulario
-  $('#btn-add-open').onclick = () => {
-    $('#add-box').hidden = false;
-  };
+  // BOTONES AGREGAR USUARIO
+  $('#btn-add-open').onclick = () => $('#add-box').hidden = false;
+  $('#btn-add-cancel').onclick = () => { $('#form-add').reset(); $('#add-box').hidden = true; };
 
-  // Cancelar
-  $('#btn-add-cancel').onclick = () => {
-    $('#form-add').reset();
-    $('#add-box').hidden = true;
-  };
-
-  // Guardar
-  $('#form-add').addEventListener('submit', async e => {
+  $('#form-add').onsubmit = async (e) => {
     e.preventDefault();
-
-    const body = {
-      nombre: $('#add-name').value.trim(),
-      correo: $('#add-email').value.trim(),
+    const nuevo = {
+      nombre: $('#add-name').value,
+      correo: $('#add-email').value,
       rol: $('#add-role').value,
       estado: $('#add-status').value
     };
-
-    if (!body.nombre || !body.correo) {
-      alert('Completa todos los campos');
-      return;
+    const res = await fetch('/api/usuarios', { // Endpoint según tu server.js
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(nuevo)
+    });
+    if(res.ok) {
+      alert("Usuario guardado");
+      $('#form-add').reset(); $('#add-box').hidden = true;
+      cargarUsuarios();
     }
+  };
 
-    try {
-      const res = await fetch('/admin/usuarios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-
-      const r = await res.json();
-
-      if (r.ok) {
-        alert('✅ Se registró exitosamente');
-
-        $('#form-add').reset();
-        $('#add-box').hidden = true;
-        cargarUsuarios();
-      } else {
-        alert('❌ Error al guardar');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error de conexión');
-    }
-  });
-
-  // Buscar
-  $('#q').addEventListener('input', render);
-
-  // Init
-  cargarUsuarios();
-
+  cargarTodo();
 });
 </script>
-
 </body>
 </html>

@@ -4,306 +4,161 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Analíticos | Ballers (Admin)</title>
-  <!-- Estás en: src/assets/views/admin/ -->
-  <link rel="stylesheet" href="../../css/base.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
   <style>
-    .header__inner{display:flex;align-items:center;gap:12px}
-    .nav{margin-left:auto}
-    .section{
-      background:linear-gradient(180deg,rgba(255,106,0,.06),transparent 60%),var(--panel);
-      border:1px solid #23232a;border-radius:var(--radius);
-      padding:22px;box-shadow:var(--shadow);margin:18px 0
+    :root { --orange: #ff6a00; --panel: #1c1c21; --radius: 12px; }
+    body { background: #0b0b0f; color: #fff; font-family: system-ui, -apple-system, sans-serif; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .header { padding: 20px 0; border-bottom: 1px solid #23232a; }
+    .header__inner { display: flex; align-items: center; justify-content: space-between; }
+    .nav ul { display: flex; gap: 20px; list-style: none; }
+    .nav a { color: #aaa; text-decoration: none; font-size: 0.9rem; }
+    .nav a.active { color: var(--orange); font-weight: bold; }
+
+    .section {
+      background: linear-gradient(180deg, rgba(255,106,0,.06), transparent 60%), var(--panel);
+      border: 1px solid #23232a; border-radius: var(--radius);
+      padding: 24px; margin: 20px 0;
     }
-    .kpis{display:grid;gap:12px;margin:18px 0}
-    @media (min-width:1000px){.kpis{grid-template-columns:repeat(3,1fr)}}
-    .kpi{border:1px solid #2a2a32;border-radius:14px;padding:14px;background:#141419}
-    .kpi h3{margin:0 0 6px;font-size:.95rem;color:var(--muted);font-weight:600}
-    .kpi .val{font-size:1.4rem;font-weight:800}
-    .grid-2{display:grid;gap:16px}
-    @media (min-width:1100px){.grid-2{grid-template-columns:1.2fr .8fr}}
-    .card{background:#141419;border:1px solid #2a2a32;border-radius:14px}
-    .card__body{padding:14px}
-    table{width:100%;border-collapse:separate;border-spacing:0 8px}
-    th,td{padding:10px 12px;background:#141419;border:1px solid #2a2a32}
-    th{text-align:left;color:#bfbfc7}
-    .muted{color:var(--muted)}
-    canvas{width:100%;height:320px}
-    .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
-    .legend span{display:inline-flex;align-items:center;gap:6px;font-size:.92rem}
-    .dot{width:10px;height:10px;border-radius:50%}
+    .kpis { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin: 20px 0; }
+    .kpi { border: 1px solid #2a2a32; border-radius: 14px; padding: 20px; background: #141419; }
+    .kpi h3 { margin: 0 0 8px; font-size: 0.9rem; color: #888; text-transform: uppercase; }
+    .kpi .val { font-size: 2rem; font-weight: 800; color: var(--orange); }
+    
+    .grid-2 { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+    .card { background: #141419; border: 1px solid #2a2a32; border-radius: 14px; padding: 20px; }
+    canvas { width: 100%; height: 250px; margin-top: 15px; }
+    .muted { color: #666; font-size: 0.9rem; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
   </style>
 </head>
 <body>
-  <!-- Header admin -->
+
   <header class="header">
     <div class="container header__inner">
-      <a class="logo" href="../../../../index.html">Ballers <span aria-hidden="true">🏀👟</span></a>
-      <button class="nav__toggle" aria-expanded="false" aria-controls="mainnav">☰</button>
-      <nav id="mainnav" class="nav">
+      <a href="/" style="font-size: 1.5rem; font-weight: bold; color: #fff; text-decoration: none;">Ballers 🏀</a>
+      <nav class="nav">
         <ul>
-          <li><a href="index.html">Inicio</a></li>
-          <li><a href="inventario.html">Inventario</a></li>
-          <li><a href="facturacion.html">Facturación</a></li>
-          <li><a href="usuarios.html">Control de usuarios</a></li>
-          <li><a href="pedidos.html">Estatus de pedidos</a></li>
-          <li><a href="productos.html">CRUD de productos</a></li>
-          <li><a class="active" href="analytics.html" aria-current="page">Analíticos</a></li>
+          <li><a href="admin/inventario.html">Inventario</a></li>
+          <li><a href="admin/usuarios.html">Usuarios (CRM)</a></li>
+          <li><a href="admin/pedidos.html">Pedidos</a></li>
+          <li><a href="analytics.html" class="active">Analíticos</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
-  <main class="container" style="padding:22px 0 64px">
+  <main class="container">
     <section class="section">
-      <h1 style="margin:0 0 6px">Analíticos</h1>
-      <p class="muted" style="margin:0">Resumen de sesiones, carrito y dispositivos.</p>
+      <h1>Dashboard de Control Operativo</h1>
+      <p class="muted">Integración de métricas de Clientes (CRM) y Cadena de Suministro (SCM).</p>
     </section>
 
-    <!-- KPIs (3) -->
     <section class="kpis">
-      <article class="kpi">
-        <h3>Usuarios únicos</h3>
-        <div class="val" id="k-users">—</div>
-        <div class="muted" id="k-sessions">—</div>
-      </article>
-
-      <article class="kpi">
-        <h3>Items agregados al carrito</h3>
-        <div class="val" id="k-adds">0</div>
-        <div class="muted" id="k-adds-sub">—</div>
-      </article>
-
-      <article class="kpi">
-        <h3>Tiempo promedio por sesión</h3>
-        <div class="val" id="k-avg">00:00</div>
-        <div class="muted" id="k-total">—</div>
-      </article>
+      <div class="kpi">
+        <h3>Total Clientes (CRM)</h3>
+        <div class="val" id="k-users">0</div>
+        <p class="muted">Base de datos centralizada</p>
+      </div>
+      <div class="kpi">
+        <h3>Alerta Stock (SCM)</h3>
+        <div class="val" id="k-stock" style="color: #ff4444;">0</div>
+        <p class="muted">Bajo el mínimo establecido</p>
+      </div>
+      <div class="kpi">
+        <h3>Reposiciones PUSH</h3>
+        <div class="val" id="k-push">0</div>
+        <p class="muted">Órdenes automáticas generadas</p>
+      </div>
     </section>
 
-    <!-- Gráficas + detalles -->
-    <section class="grid-2">
+    <div class="grid-2">
       <article class="card">
-        <div class="card__body">
-          <h2 style="margin:0 0 8px">Top productos agregados</h2>
-          <canvas id="chartProducts" width="800" height="320"></canvas>
-          <div class="legend" id="legProducts"></div>
-        </div>
+        <h3>Rendimiento Económico</h3>
+        <div class="val" id="k-revenue" style="font-size: 2.5rem; margin: 15px 0;">$0.00</div>
+        <p class="muted">Ventas totales procesadas en sistema</p>
+        <canvas id="chartSales"></canvas>
       </article>
 
       <article class="card">
-        <div class="card__body">
-          <h2 style="margin:0 0 8px">Dispositivos</h2>
-          <canvas id="chartDevices" width="600" height="320"></canvas>
-          <div class="legend" id="legDevices"></div>
-        </div>
+        <h3>Distribución de Inventario</h3>
+        <canvas id="chartStock"></canvas>
+        <div id="legendStock" style="margin-top: 10px; display: flex; gap: 15px; font-size: 0.8rem;"></div>
       </article>
-    </section>
-
-    <section class="section">
-      <h2 style="margin:0 0 8px">Sesiones por día (últimos 7)</h2>
-      <canvas id="chartSessions" width="1000" height="320"></canvas>
-    </section>
-
-    <section class="section">
-      <h2 style="margin:0 0 8px">Últimos eventos</h2>
-      <table id="tblEvents">
-        <thead><tr><th>Fecha/Hora</th><th>Usuario</th><th>Página</th><th>Acción</th><th>Producto</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </section>
+    </div>
   </main>
 
-<footer class="footer" style="background:#0f0f0f; color:#ccc; padding:25px 0; margin-top:40px; font-family:'Poppins',sans-serif;">
-  <div class="container footer__inner" style="display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;">
-    <small style="color:#aaa;">© 2025 Ballers. Todos los derechos reservados.</small>
-
-    <nav aria-label="Legal" style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center;">
-      <a href="../aviso_privacidad.html" style="color:#ffd166; text-decoration:none;">Aviso de privacidad</a>
-      <a href="../terminos.html" style="color:#ffd166; text-decoration:none;">Términos y condiciones</a>
-      <a href="../cumplimiento_legal.html" style="color:#ffd166; text-decoration:none;">Cumplimiento legal</a>
-      <a href="../certificacion.html" style="color:#ffd166; text-decoration:none;">Certificación digital</a>
-      <a href="../politicas_venta.html" style="color:#ffd166; text-decoration:none;">Políticas de venta</a>
-    </nav>
-
-    <div style="margin-top:8px; color:#fff;">
-      <strong>Contacto:</strong><br>
-      Teléfono: +52 449 123 4567<br>
-      Correo: contacto@ballers.com
-    </div>
-  </div>
-</footer>
-
-
-  <script src="../../js/app.js"></script>
   <script>
-  // ---------- Helpers ----------
-  const pad = n => String(n).padStart(2,'0');
-  const fmtMinSec = ms => {
-    const m = Math.floor(ms/60000), s = Math.floor((ms%60000)/1000);
-    return `${pad(m)}:${pad(s)}`;
-  };
+    const colors = ['#ff6a00', '#ffd166', '#7dd3fc', '#a7f3d0'];
 
-  // ---------- Semilla si no hay datos ----------
-  (function seedIfEmpty(){
-    const hasData = localStorage.getItem('ballers_events') && localStorage.getItem('ballers_sessions');
-    if (hasData) return;
-    const users = ['edgar','jaziel','ana','luis','maria','juan'];
-    const prods = [
-      {id:101,name:'Sneakers Urban X'},
-      {id:205,name:'Jersey Baller 23'},
-      {id:309,name:'Gorra Street'},
-      {id:412,name:'Sneakers Crossover Pro'},
-      {id:518,name:'Calcetas Pro Pack'}
-    ];
-    const devices = ['Windows','Android','iPhone','Mac','Linux'];
-    const pages = ['/', '/catalog', '/user/index', '/user/catalog', '/user/cart'];
+    async function fetchData() {
+      try {
+        // Llama al endpoint de métricas que creamos en server.js
+        const res = await fetch('/api/admin/metrics');
+        const data = await res.json();
 
-    const sessions = [];
-    const events = [];
-    const now = Date.now();
-    for (let d=6; d>=0; d--){
-      const dayStart = now - d*24*3600*1000;
-      const daySessions = 5 + Math.floor(Math.random()*6);
-      for (let i=0; i<daySessions; i++){
-        const user = users[Math.floor(Math.random()*users.length)];
-        const device = devices[Math.floor(Math.random()*devices.length)];
-        const start = dayStart + Math.floor(Math.random()* (20*3600*1000));
-        const dur   = 2*60*1000 + Math.floor(Math.random()* (12*60*1000));
-        const end   = start + dur;
-        sessions.push({user, start, end, device});
+        // Actualización de KPIs reales
+        document.getElementById('k-users').textContent = data.total_clientes || 0;
+        document.getElementById('k-stock').textContent = data.stock_critico || 0;
+        document.getElementById('k-push').textContent = data.reposiciones_push || 0;
+        
+        const formatMoney = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(data.revenue || 0);
+        document.getElementById('k-revenue').textContent = formatMoney;
 
-        const steps = 3 + Math.floor(Math.random()*5);
-        for (let s=0; s<steps; s++){
-          const page = pages[Math.floor(Math.random()*pages.length)];
-          const kind = Math.random() < 0.4 ? 'add_to_cart' : 'view';
-          const prod = prods[Math.floor(Math.random()*prods.length)];
-          events.push({
-            ts: start + Math.floor(Math.random()*dur),
-            user, page, action: kind,
-            productId: kind==='add_to_cart'? prod.id : null,
-            productName: kind==='add_to_cart'? prod.name : null,
-            device
-          });
-        }
+        renderDashboard(data);
+      } catch (err) {
+        console.error("Error al conectar con la API:", err);
       }
     }
-    localStorage.setItem('ballers_sessions', JSON.stringify(sessions));
-    localStorage.setItem('ballers_events', JSON.stringify(events));
-  })();
 
-  const sessions = JSON.parse(localStorage.getItem('ballers_sessions')||'[]');
-  const events = JSON.parse(localStorage.getItem('ballers_events')||'[]');
+    function renderDashboard(data) {
+      // Gráfica de Barras (SCM)
+      const canvasSales = document.getElementById('chartSales');
+      drawBars(canvasSales, [
+        { label: 'Critico', value: data.stock_critico },
+        { label: 'Reposiciones', value: data.reposiciones_push }
+      ]);
 
-  // ---------- Agregados ----------
-  const usersSet = new Set(sessions.map(s=>s.user));
-  const totalSessions = sessions.length;
-  const totalTimeMs = sessions.reduce((t,s)=> t + (s.end - s.start), 0);
-  const avgTimeMs = totalSessions ? totalTimeMs/totalSessions : 0;
+      // Gráfica de Pastel (CRM)
+      const canvasStock = document.getElementById('chartStock');
+      drawPie(canvasStock, [
+        { label: 'Stock Bajo', value: data.stock_critico },
+        { label: 'Disponible', value: 10 } // Valor base para visualización
+      ]);
+    }
 
-  const adds = events.filter(e=>e.action==='add_to_cart');
-  const addsByProduct = {};
-  adds.forEach(e=>{
-    const key = e.productName || ('ID '+e.productId);
-    addsByProduct[key] = (addsByProduct[key]||0) + 1;
-  });
+    function drawBars(canvas, items) {
+      const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height;
+      ctx.clearRect(0,0,W,H);
+      const max = Math.max(1, ...items.map(i => i.value));
+      const barW = 60, gap = 40;
+      items.forEach((item, i) => {
+        const h = (item.value / max) * (H - 40);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fillRect(gap + i * (barW + gap), H - h - 20, barW, h);
+        ctx.fillStyle = "#fff";
+        ctx.fillText(item.label, gap + i * (barW + gap), H - 5);
+      });
+    }
 
-  const deviceCounts = {};
-  sessions.forEach(s=>{
-    deviceCounts[s.device || 'Otro'] = (deviceCounts[s.device || 'Otro']||0) + 1;
-  });
+    function drawPie(canvas, items) {
+      const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height;
+      ctx.clearRect(0,0,W,H);
+      const total = items.reduce((a, b) => a + b.value, 0) || 1;
+      let startAngle = 0;
+      items.forEach((item, i) => {
+        const sliceAngle = (2 * Math.PI * item.value) / total;
+        ctx.beginPath();
+        ctx.moveTo(W/2, H/2);
+        ctx.arc(W/2, H/2, 80, startAngle, startAngle + sliceAngle);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        startAngle += sliceAngle;
+      });
+    }
 
-  // sesiones por día (últimos 7)
-  const last7 = [];
-  for (let i=6;i>=0;i--){
-    const day = new Date(Date.now()-i*24*3600*1000);
-    const key = day.toISOString().slice(0,10);
-    const count = sessions.filter(s=>{
-      const d = new Date(s.start).toISOString().slice(0,10);
-      return d===key;
-    }).length;
-    last7.push({label:key.slice(5), value:count}); // MM-DD
-  }
-
-  // ---------- KPIs ----------
-  document.getElementById('k-users').textContent = usersSet.size;
-  document.getElementById('k-sessions').textContent = `${totalSessions} sesiones`;
-  document.getElementById('k-adds').textContent = adds.length;
-  document.getElementById('k-adds-sub').textContent = `${Object.keys(addsByProduct).length} productos con actividad`;
-  document.getElementById('k-avg').textContent = fmtMinSec(avgTimeMs);
-  document.getElementById('k-total').textContent = `Total: ${fmtMinSec(totalTimeMs)}`;
-
-  // ---------- Tabla eventos ----------
-  const pad2 = n => String(n).padStart(2,'0');
-  const tbody = document.querySelector('#tblEvents tbody');
-  const latest = events.sort((a,b)=>b.ts-a.ts).slice(0,20);
-  tbody.innerHTML = latest.map(e=>{
-    const d = new Date(e.ts);
-    const dt = `${d.toLocaleDateString()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-    return `<tr>
-      <td>${dt}</td>
-      <td>${e.user}</td>
-      <td>${e.page}</td>
-      <td>${e.action}</td>
-      <td>${e.productName || ''}</td>
-    </tr>`;
-  }).join('');
-
-  // ---------- Gráficas (Canvas 2D) ----------
-  function pick(i){
-    const base = ['#ff6a00','#ffd166','#7dd3fc','#a7f3d0','#c4b5fd','#fda4af','#f9a8d4','#93c5fd'];
-    return base[i%base.length];
-  }
-  function drawBar(canvas, data){
-    const ctx = canvas.getContext('2d'), W=canvas.width, H=canvas.height;
-    ctx.clearRect(0,0,W,H);
-    const max = Math.max(1, ...data.map(d=>d.value));
-    const padX=40, padY=20, slot=(W-2*padX)/data.length, barW=slot*0.7;
-    data.forEach((d,i)=>{
-      const x=padX+i*slot+(slot-barW)/2;
-      const h=(H-2*padY)*(d.value/max), y=H-padY-h;
-      ctx.fillStyle=pick(i); ctx.fillRect(x,y,barW,h);
-      ctx.fillStyle='#e5e7eb'; ctx.font='12px system-ui'; ctx.fillText(d.value,x,y-4);
-      ctx.save(); ctx.translate(x+barW/2,H-padY+12); ctx.rotate(-Math.PI/6);
-      ctx.textAlign='center'; ctx.fillText(d.label,0,0); ctx.restore();
-    });
-  }
-  function drawPie(canvas, data){
-    const ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
-    ctx.clearRect(0,0,W,H);
-    const cx=W/2, cy=H/2, r=Math.min(W,H)/2-20;
-    const total=Math.max(1, data.reduce((t,d)=>t+d.value,0));
-    let a0=-Math.PI/2;
-    data.forEach((d,i)=>{
-      const a1=a0+2*Math.PI*(d.value/total);
-      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,a0,a1); ctx.closePath();
-      ctx.fillStyle=pick(i); ctx.fill(); a0=a1;
-    });
-  }
-  function drawLine(canvas, data){
-    const ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
-    ctx.clearRect(0,0,W,H);
-    const padX=40, padY=20, max=Math.max(1,...data.map(d=>d.value));
-    ctx.strokeStyle='#374151'; for(let y=0;y<=4;y++){const gy=padY+(H-2*padY)*y/4; ctx.beginPath(); ctx.moveTo(padX,gy); ctx.lineTo(W-padX,gy); ctx.stroke();}
-    ctx.strokeStyle='#ff6a00'; ctx.lineWidth=2; ctx.beginPath();
-    data.forEach((d,i)=>{
-      const x=padX+i*((W-2*padX)/(data.length-1));
-      const y=H-padY-(H-2*padY)*(d.value/max);
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-      ctx.fillStyle='#e5e7eb'; ctx.font='12px system-ui'; ctx.fillText(d.label,x-12,H-padY+14);
-    });
-    ctx.stroke();
-  }
-
-  const topProducts = Object.entries(addsByProduct).map(([k,v])=>({label:k,value:v})).sort((a,b)=>b.value-a.value).slice(0,6);
-  const devicesData = Object.entries(deviceCounts).map(([k,v])=>({label:k,value:v})).sort((a,b)=>b.value-a.value);
-
-  drawBar(document.getElementById('chartProducts'), topProducts);
-  drawPie(document.getElementById('chartDevices'), devicesData);
-  drawLine(document.getElementById('chartSessions'), last7);
-
-  const mkLegend = (el, data)=> el.innerHTML = data.map((d,i)=>`<span><i class="dot" style="background:${pick(i)}"></i>${d.label} (${d.value})</span>`).join('');
-  mkLegend(document.getElementById('legProducts'), topProducts);
-  mkLegend(document.getElementById('legDevices'), devicesData);
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', fetchData);
   </script>
 </body>
 </html>

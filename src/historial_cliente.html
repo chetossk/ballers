@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>CRM | Historial de Clientes</title>
+  <style>
+    :root {
+      --primary: #ff6a00; --bg: #0b0b0f; --panel: #141419; 
+      --border: #2a2a32; --text: #eee;
+    }
+    body { 
+      background-color: var(--bg); color: var(--text); 
+      font-family: 'Segoe UI', sans-serif; margin: 0; padding: 40px; 
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    
+    /* Diseño de la Línea de Tiempo */
+    .timeline {
+      border-left: 2px solid var(--primary);
+      padding: 20px 0 20px 30px;
+      margin-left: 20px;
+    }
+    .timeline-item {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+    }
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -41px; top: 20px;
+      width: 20px; height: 20px;
+      background: var(--primary);
+      border-radius: 50%;
+      border: 4px solid var(--bg);
+    }
+    .date { color: var(--primary); font-size: 0.8rem; font-weight: bold; margin-bottom: 8px; }
+    .user-name { font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; color: #fff; }
+    .type { 
+      display: inline-block; padding: 3px 8px; background: #2a2a32; 
+      border-radius: 5px; font-size: 0.7rem; text-transform: uppercase; 
+    }
+    .desc { margin-top: 15px; color: #bbb; line-height: 1.5; }
+
+    header { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+    h1 { margin: 0; color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Expediente CRM</h1>
+      <p>Historial de interacciones con clientes</p>
+    </header>
+
+    <div id="timeline-container" class="timeline">
+      <p>Cargando historial...</p>
+    </div>
+  </div>
+
+  <script>
+    async function cargarHistorial() {
+      const container = document.getElementById('timeline-container');
+      
+      try {
+        // Esta es la ruta que aparece en tu imagen
+        const response = await fetch('/api/crm/historial');
+        const data = await response.json();
+
+        if (data.length === 0) {
+          container.innerHTML = "<p>No hay datos registrados.</p>";
+          return;
+        }
+
+        // Limpiamos y pintamos
+        container.innerHTML = data.map(item => `
+          <div class="timeline-item">
+            <div class="date">${new Date(item.fecha).toLocaleString('es-MX')}</div>
+            <div class="user-name">${item.cliente_nombre}</div>
+            <div class="type">${item.tipo}</div>
+            <p class="desc">${item.descripcion}</p>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        console.error("Error:", error);
+        container.innerHTML = "<p style='color:red'>Error al conectar con la API.</p>";
+      }
+    }
+
+    // Ejecutar al abrir la página
+    window.onload = cargarHistorial;
+  </script>
+</body>
+</html>

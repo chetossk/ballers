@@ -4,189 +4,231 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Catálogo | Ballers</title>
+
   <link rel="stylesheet" href="./css/base.css"/>
 </head>
 <body>
 
-<header class="header">
-  <div class="container header__inner">
-    <a class="logo" href="./index.html">
-      Ballers <span aria-hidden="true">🏀👟</span>
-    </a>
+  <header class="header">
+    <div class="container header__inner">
+      <a class="logo" href="./index.html">Ballers <span aria-hidden="true">🏀👟</span></a>
 
-    <button class="nav__toggle" aria-expanded="false" aria-controls="mainnav">☰</button>
-    <nav id="mainnav" class="nav">
-      <ul>
-        <li><a href="./index.html">Inicio</a></li>
-        <li><a class="active" href="./catalog_user.html">Catálogo</a></li>
-        <li><a href="./cart.html">Carrito</a></li>
-      </ul>
-    </nav>
-  </div>
-</header>
-
-<section class="filters">
-  <div class="container filters__inner">
-    <div class="chips">
-      <button class="chip is-active" data-cat="todo">Todo</button>
-      <button class="chip" data-cat="sneakers">Sneakers</button>
-      <button class="chip" data-cat="Ropa">Ropa</button>
-      <button class="chip" data-cat="Accesorios">Accesorios</button>
-      <button class="chip" data-cat="Calzado">Calzado</button>
+      <button class="nav__toggle" aria-expanded="false" aria-controls="mainnav">☰</button>
+      <nav id="mainnav" class="nav">
+        <ul>
+          <li><a href="./index.html">Inicio</a></li>
+          <li><a class="active" href="./catalog_user.html" aria-current="page">Catálogo</a></li>
+          <li><a href="./cart.html">Carrito</a></li>
+          <li><a href="./comprados.html">Ver productos comprados</a></li>
+          <li><a href="./seguimiento.html">Seguimiento</a></li>
+          <li><a href="./editar.html">Editar información</a></li>
+        </ul>
+      </nav>
     </div>
+  </header>
 
-    <div class="sort">
-      <label for="orden">Ordenar:</label>
-      <select id="orden">
-        <option value="popular">Más populares</option>
-        <option value="precio-asc">Precio: bajo a alto</option>
-        <option value="precio-desc">Precio: alto a bajo</option>
-      </select>
+  <section class="filters">
+    <div class="container filters__inner">
+      <div class="chips">
+        <button class="chip is-active" data-cat="todo">Todo</button>
+        <button class="chip" data-cat="sneakers">Sneakers</button>
+        <button class="chip" data-cat="jerseys">Jerseys</button>
+        <button class="chip" data-cat="gorras">Gorras</button>
+        <button class="chip" data-cat="accesorios">Accesorios</button>
+      </div>
+
+      <div class="sort">
+        <label for="orden">Ordenar:</label>
+        <select id="orden">
+          <option value="popular">Más populares</option>
+          <option value="nuevo">Novedades</option>
+          <option value="precio-asc">Precio: bajo a alto</option>
+          <option value="precio-desc">Precio: alto a bajo</option>
+        </select>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<main class="container">
-  <section id="product-grid" class="grid"></section>
-</main>
+  <main class="container">
+    <section id="product-grid" class="grid" aria-live="polite"></section>
+  </main>
 
-<footer class="footer">
-  <div class="container footer__inner">
-    <small>© 2025 Ballers. Todos los derechos reservados.</small>
-  </div>
-</footer>
+  <footer class="footer">
+    <div class="container footer__inner">
+      <small>© 2025 Ballers. Todos los derechos reservados.</small>
+    </div>
+  </footer>
 
-<script>
-(async () => {
+  <script>
+  (async () => {
+    const grid   = document.getElementById('product-grid');
+    const chips  = Array.from(document.querySelectorAll('.chip'));
+    const select = document.getElementById('orden');
 
-  const grid   = document.getElementById('product-grid');
-  const chips  = Array.from(document.querySelectorAll('.chip'));
-  const select = document.getElementById('orden');
+    const money = n => Number(n).toLocaleString('es-MX', { style:'currency', currency:'MXN' });
 
-  const money = n =>
-    Number(n).toLocaleString('es-MX', { style:'currency', currency:'MXN' });
+    const normalizeCategory = (cat) => {
+      const c = String(cat || '').toLowerCase().trim();
+      const map = {
+        'ropa': 'jerseys',
+        'jersey': 'jerseys',
+        'jerseys': 'jerseys',
+        'gorra': 'gorras',
+        'gorras': 'gorras',
+        'calzado': 'sneakers',
+        'tenis': 'sneakers',
+        'sneakers': 'sneakers',
+        'accesorios': 'accesorios',
+        'accessories': 'accesorios'
+      };
+      return map[c] || c;
+    };
 
-  let products = [];
+    const fixImg = (p) => {
+      if (!p) return '';
+      if (/^https?:\/\//i.test(p)) return p;
+      if (p.startsWith('src/')) return '/' + p.replace(/^src\//, '');
+      if (p.startsWith('assets/')) return '/' + p;
+      if (p.startsWith('/')) return p;
+      return p;
+    };
 
-  // 🔥 CARGAR PRODUCTOS DESDE MYSQL
-  try {
-    const res = await fetch('http://localhost:3000/api/productos');
-    if (!res.ok) throw new Error('No se pudo cargar el catálogo');
-    products = await res.json();
-  } catch (err) {
-    grid.innerHTML = `
-      <article class="card" style="padding:16px">
-        <h3>Error</h3>
-        <p>${err.message}</p>
-      </article>`;
-    return;
-  }
+    let products = [];
+    try {
+      const res = await fetch('/api/productos', { cache: 'no-store' });
+      if (!res.ok) throw new Error('No se pudo cargar el catálogo (API)');
+      const data = await res.json();
 
-  function cardTemplate(p) {
-    return `
-      <article class="card" data-category="${p.categoria}">
-        <div class="card__img"
-             style="background:url('${p.imagen}') center/cover no-repeat">
-        </div>
-
-        <div class="card__body">
-          <h3 class="card__title">${p.nombre}</h3>
-          <p class="card__price">${money(p.precio)}</p>
-
-          <div class="card__actions">
-            <button class="btn btn--ghost">♡</button>
-            <button class="btn" data-add="${p.id}">
-              Comprar
-            </button>
-          </div>
-        </div>
-      </article>`;
-  }
-
-  let current = [...products];
-
-  function applyFilters() {
-    const active = document.querySelector('.chip.is-active');
-    const cat = active.dataset.cat;
-
-    current = cat === 'todo'
-      ? [...products]
-      : products.filter(p => p.categoria === cat);
-  }
-
-  function applySort() {
-    const v = select.value;
-
-    if (v === 'precio-asc')
-      current.sort((a,b)=>a.precio-b.precio);
-
-    if (v === 'precio-desc')
-      current.sort((a,b)=>b.precio-a.precio);
-  }
-
-  function render() {
-    grid.innerHTML = current.map(cardTemplate).join('');
-  }
-
-  chips.forEach(chip => chip.addEventListener('click', () => {
-    chips.forEach(c => c.classList.remove('is-active'));
-    chip.classList.add('is-active');
-    applyFilters();
-    applySort();
-    render();
-  }));
-
-  select.addEventListener('change', () => {
-    applySort();
-    render();
-  });
-
-  render();
-
-  // 🔥 AGREGAR AL CARRITO
-  grid.addEventListener('click', async e => {
-
-    const btn = e.target.closest('[data-add]');
-    if (!btn) return;
-
-    const productoId = btn.getAttribute('data-add');
-    const usuarioId = localStorage.getItem('usuario_id');
-
-    if (!usuarioId) {
-      alert("Debes iniciar sesión para comprar.");
-      window.location.href = "./login.html";
+      products = data.map(p => ({
+        id: p.id,
+        name: p.name,
+        price: Number(p.price),
+        category: normalizeCategory(p.category),
+        image: fixImg(p.image),
+        createdAt: p.createdAt || null,
+        popularity: p.popularity || 0
+      }));
+    } catch (err) {
+      grid.innerHTML = `
+        <article class="card" style="padding:16px">
+          <h3>Error</h3>
+          <p>${err.message}</p>
+        </article>`;
       return;
     }
 
-    try {
-      const res = await fetch('http://localhost:3000/api/carrito', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          usuario_id: Number(usuarioId),
-          producto_id: Number(productoId),
-          cantidad: 1
-        })
-      });
+    function cardTemplate(p) {
+      const bg = p.image
+        ? `background:url('${p.image}') center/cover no-repeat`
+        : `background:linear-gradient(135deg, rgba(255,106,0,.18), rgba(255,209,102,.18))`;
 
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("Producto agregado al carrito 🛒");
-        window.location.href = './cart.html';
-      } else {
-        alert(data.error || "Error agregando al carrito");
-      }
-
-    } catch (error) {
-      console.error(error);
-      alert("Error de conexión con el servidor");
+      return `
+        <article class="card" data-category="${p.category}">
+          <div class="card__img" style="${bg}"></div>
+          <div class="card__body">
+            <h3 class="card__title">${p.name}</h3>
+            <p class="card__price">${money(p.price)}</p>
+            <div class="card__actions">
+              <button class="btn btn--ghost" type="button">♡</button>
+              <button class="btn" type="button" data-add="${p.id}">
+                Añadir al carrito
+              </button>
+            </div>
+            <p class="muted" data-msg="${p.id}" style="margin:10px 0 0; min-height:18px;"></p>
+          </div>
+        </article>`;
     }
 
-  });
+    let current = [...products];
 
-})();
-</script>
+    function applyFilters() {
+      const active = document.querySelector('.chip.is-active');
+      const cat = active?.dataset?.cat || 'todo';
+      current = cat === 'todo' ? [...products] : products.filter(p => p.category === cat);
+    }
+
+    function applySort() {
+      const v = select.value;
+      if (v === 'precio-asc')  current.sort((a,b)=>a.price-b.price);
+      if (v === 'precio-desc') current.sort((a,b)=>b.price-a.price);
+
+      if (v === 'nuevo') {
+        current.sort((a,b) => {
+          const da = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const db = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return db - da;
+        });
+      }
+
+      if (v === 'popular') {
+        current.sort((a,b) => (b.popularity||0) - (a.popularity||0));
+      }
+    }
+
+    function render() {
+      grid.innerHTML = current.length
+        ? current.map(cardTemplate).join('')
+        : `<article class="card" style="padding:16px">
+            <h3>No hay productos</h3>
+            <p class="muted">Prueba otro filtro.</p>
+          </article>`;
+    }
+
+    chips.forEach(chip => chip.addEventListener('click', () => {
+      chips.forEach(c => c.classList.remove('is-active'));
+      chip.classList.add('is-active');
+      applyFilters(); applySort(); render();
+    }));
+
+    select.addEventListener('change', () => {
+      applySort(); render();
+    });
+
+    applyFilters();
+    applySort();
+    render();
+
+    // ✅ Agregar al carrito REAL (sin redirigir)
+    grid.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-add]');
+      if (!btn) return;
+
+      const productId = Number(btn.dataset.add);
+      const msgEl = document.querySelector(`[data-msg="${productId}"]`);
+
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = 'Agregando...';
+      if (msgEl) msgEl.textContent = '';
+
+      try {
+        const resp = await fetch('/api/carrito', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ producto_id: productId, cantidad: 1 })
+        });
+
+        if (!resp.ok) throw new Error('No se pudo agregar al carrito');
+
+        // Feedback visual y se queda en catálogo
+        btn.textContent = 'Agregado ✓';
+        if (msgEl) msgEl.textContent = 'Producto agregado al carrito.';
+
+        // Regresa el botón a normal después de 1.2s
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.textContent = old;
+          if (msgEl) msgEl.textContent = '';
+        }, 1200);
+
+      } catch (err) {
+        alert(err.message);
+        btn.disabled = false;
+        btn.textContent = old;
+      }
+    });
+  })();
+  </script>
 
 </body>
 </html>

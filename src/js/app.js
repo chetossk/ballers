@@ -1,105 +1,133 @@
-/* ==== Toggle del menú (hamburguesa) en móvil ==== */
-// Ajustado para que use el ID "main-nav" que pusimos en el HTML
-const btnToggle = document.querySelector('.nav__toggle');
-const nav = document.querySelector('#main-nav');
+const express = require('express');
+const cors = require('cors');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 
-if (btnToggle && nav) {
-  btnToggle.addEventListener('click', () => {
-    const open = nav.classList.toggle('open');
-    btnToggle.setAttribute('aria-expanded', String(open));
-  });
+const app = express();
+const PORT = 3000;
 
-  // Cerrar el panel cuando se hace clic en un enlace (en móvil)
-  nav.addEventListener('click', (e) => {
-    if (e.target.matches('a') && nav.classList.contains('open')) {
-      nav.classList.remove('open');
-      btnToggle.setAttribute('aria-expanded', 'false');
+// --- MIDDLEWARES (Configuración del servidor) ---
+app.use(cors());
+app.use(express.json()); // Para entender datos JSON enviados desde el front
+app.use(express.urlencoded({ extended: true })); // Para entender formularios tradicionales
+
+// Servir archivos estáticos: Esto asegura que el navegador encuentre tus carpetas
+app.use(express.static(path.join(__dirname))); 
+
+// --- BASE DE DATOS (Conexión y Tablas) ---
+const db = new sqlite3.Database('./ballers.db', (err) => {
+    if (err) {
+        console.error("❌ ERROR CRÍTICO AL ABRIR DB:", err.message);
+    } else {
+        console.log("✅ Conexión exitosa a SQLite (ballers.db)");
     }
-  });
-}
-
-/* ==== Submenú "Panel/Documentación" ==== */
-const subToggle = document.querySelector('.submenu__toggle');
-const subMenu   = document.querySelector('.submenu');
-
-if (subToggle && subMenu) {
-  const closeSubmenu = () => {
-    subMenu.classList.remove('open');
-    subToggle.setAttribute('aria-expanded', 'false');
-  };
-
-  subToggle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const isOpen = subMenu.classList.toggle('open');
-    subToggle.setAttribute('aria-expanded', String(isOpen));
-  });
-
-  // Cerrar al hacer clic fuera
-  document.addEventListener('click', (e) => {
-    if (!subMenu.contains(e.target) && !subToggle.contains(e.target)) {
-      closeSubmenu();
-    }
-  });
-
-  // Cerrar con Escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeSubmenu();
-  });
-}
-
-/* ==== Chips de filtros (Visual y Lógica) ==== */
-document.querySelectorAll('.chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    // Quita la clase activa de todos los chips
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('is-active'));
-    // La pone en el clickeado
-    chip.classList.add('is-active');
-    
-    // Aquí puedes añadir la lógica de filtrado más adelante:
-    const categoria = chip.textContent.toLowerCase();
-    console.log(`Filtrando por: ${categoria}`);
-  });
 });
 
-/* ==== Lógica de Roles y Sesión (Integrada) ==== */
-function checkAuth() {
-    const role = localStorage.getItem('ballers_role');
-    const navUser = document.getElementById('nav-user');
-    const navAdmin = document.getElementById('nav-admin');
-    const userView = document.getElementById('user-view');
-    const adminView = document.getElementById('admin-view');
-    const btnLogin = document.getElementById('btn-login');
-    const btnLogout = document.getElementById('btn-logout');
+db.serialize(() => {
+    // 1. Tabla de Usuarios (Administración)
+    db.run(`CREATE TABLE IF NOT EXISTS usuarios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre TEXT NOT NULL,
+        correo TEXT UNIQUE NOT NULL,
+        rol TEXT DEFAULT 'cliente',
+        estado TEXT DEFAULT 'activo'
+    )`);
 
-    // Resetear vistas
-    [navUser, navAdmin, userView, adminView, btnLogin, btnLogout].forEach(el => {
-        if(el) el.classList.add('hidden');
+    // 2. Tabla de Pedidos (Compras)
+    db.run(`CREATE TABLE IF NOT EXISTS pedidos (
+        id TEXT PRIMARY KEY,
+        fecha TEXT NOT NULL,
+        estado TEXT NOT NULL,
+        direccion TEXT NOT NULL,
+        total REAL NOT NULL
+    )`);
+
+    // 3. Tabla de Artículos por Pedido (Detalle)
+    db.run(`CREATE TABLE IF NOT EXISTS pedido_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        pedido_id TEXT,
+        nombre TEXT NOT NULL,
+        cantidad INTEGER NOT NULL,
+        precio REAL NOT NULL,
+        FOREIGN KEY(pedido_id) REFERENCES pedidos(id)
+    )`);
+});
+
+// --- RUTAS DE LA API ---
+
+// --- SECCIÓN: USUARIOS ---
+
+// Obtener lista de usuarios
+app.get('/admin/usuarios', (req, res) => {
+    db.all("SELECT * FROM usuarios", [], (err, rows) => {
+        if (err) return res.status(500).json({ ok: false, msg: err.message });
+        res.json(rows);
     });
+});
 
-    if (role === 'admin' || role === 'empleado') {
-        if(adminView) adminView.classList.remove('hidden');
-        if(navAdmin) navAdmin.classList.remove('hidden');
-        if(btnLogout) btnLogout.classList.remove('hidden');
-        
-        const label = document.getElementById('admin-label');
-        if(label) label.innerText = role === 'admin' ? "Panel Admin" : "Panel Empleado";
-    } else {
-        if(userView) userView.classList.remove('hidden');
-        if(navUser) navUser.classList.remove('hidden');
-        
-        if (role === 'cliente') {
-            if(btnLogout) btnLogout.classList.remove('hidden');
-        } else {
-            if(btnLogin) btnLogin.classList.remove('hidden');
+// Guardar nuevo usuario
+app.post('/admin/usuarios', (req, res) => {
+    const { nombre, correo, rol, estado } = req.body;
+    
+    if (!nombre || !correo) return res.status(400).json({ ok: false, msg: "Faltan campos obligatorios" });
+
+    const sql = `INSERT INTO usuarios (nombre, correo, rol, estado) VALUES (?, ?, ?, ?)`;
+    db.run(sql, [nombre, correo, rol, estado], function(err) {
+        if (err) {
+            console.log("❌ Error al insertar usuario:", err.message);
+            return res.status(400).json({ ok: false, msg: "El correo ya existe" });
         }
-    }
-}
+        res.json({ ok: true, id: this.lastID });
+    });
+});
 
-// Función global para Logout
-window.logout = function() {
-    localStorage.removeItem('ballers_role');
-    window.location.reload();
-};
+// --- SECCIÓN: COMPRAS (PEDIDOS) ---
 
-// Ejecutar al cargar
-document.addEventListener('DOMContentLoaded', checkAuth);
+// Obtener todas las compras con sus artículos detallados
+app.get('/api/mis-compras', (req, res) => {
+    const sql = `
+        SELECT p.*, pi.nombre as it_nombre, pi.cantidad, pi.precio 
+        FROM pedidos p 
+        LEFT JOIN pedido_items pi ON p.id = pi.pedido_id
+        ORDER BY p.fecha DESC
+    `;
+
+    db.all(sql, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        // Agrupar artículos por pedido
+        const pedidos = {};
+        rows.forEach(r => {
+            if (!pedidos[r.id]) {
+                pedidos[r.id] = { 
+                    id: r.id, 
+                    date: r.fecha, 
+                    status: r.estado, 
+                    address: r.direccion, 
+                    total: r.total, 
+                    items: [] 
+                };
+            }
+            if (r.it_nombre) {
+                pedidos[r.id].items.push({ name: r.it_nombre, qty: r.cantidad, price: r.precio });
+            }
+        });
+        res.json(Object.values(pedidos));
+    });
+});
+
+// --- MANEJO DE ERRORES 404 ---
+app.use((req, res) => {
+    res.status(404).send("<h1>404 - Lo sentimos, esta página no existe en el servidor</h1>");
+});
+
+// --- INICIAR SERVIDOR ---
+app.listen(PORT, () => {
+    console.log(`
+    ================================================
+    🏀 BALLERS BACKEND ACTIVO
+    🚀 URL: http://localhost:${PORT}
+    📂 Archivos estáticos servidos desde: ${__dirname}
+    ================================================
+    `);
+});

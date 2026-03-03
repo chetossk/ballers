@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Productos | Ballers Admin</title>
+  <link rel="stylesheet" href="../../css/base.css">
+  <style>
+    .form-container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: var(--panel);
+      padding: 30px;
+      border-radius: var(--radius);
+      border: 1px solid #23232a;
+      box-shadow: var(--shadow);
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--muted); }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px;
+      background: #141419;
+      border: 1px solid #2a2a32;
+      border-radius: 8px;
+      color: white;
+      font-size: 1rem;
+    }
+    .form-group input:focus { border-color: var(--primary); outline: none; }
+    .preview-img {
+      width: 100%;
+      height: 200px;
+      object-fit: contain;
+      background: #000;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: none;
+    }
+    .btn-block { width: 100%; padding: 15px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="container header__inner" style="display:flex; align-items:center;">
+      <a class="logo" href="../../../../index.html">Ballers Admin 🏀</a>
+      <nav class="nav" style="margin-left:auto">
+        <ul>
+          <li><a href="inventario.html">Inventario</a></li>
+          <li><a class="active" href="productos.html">Nuevo Producto</a></li>
+          <li><a href="usuarios.html">Usuarios</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="form-container">
+      <h2 id="form-title">Agregar Nuevo Producto</h2>
+      <p class="muted">Llena los campos para actualizar el catálogo de la tienda.</p>
+      <hr style="border: 0; border-top: 1px solid #23232a; margin: 20px 0;">
+
+      <form id="product-form">
+        <div class="form-group">
+          <label>Nombre del Producto</label>
+          <input type="text" id="nombre" placeholder="Ej. Jordan 4 Retro Military Blue" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label>Precio ($MXN)</label>
+            <input type="number" id="precio" step="0.01" placeholder="0.00" required>
+          </div>
+          <div class="form-group">
+            <label>Stock Inicial</label>
+            <input type="number" id="stock" placeholder="Cantidad" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="categoria">
+            <option value="sneakers">Sneakers</option>
+            <option value="jerseys">Jerseys</option>
+            <option value="gorras">Gorras</option>
+            <option value="accesorios">Accesorios</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre de la Imagen (archivo)</label>
+          <input type="text" id="imagen" placeholder="nombre-archivo.jpg" required>
+          <img id="img-preview" class="preview-img" src="" alt="Vista previa">
+        </div>
+
+        <button type="submit" class="btn btn-block">Guardar en Base de Datos</button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('product-form');
+    const imgInput = document.getElementById('imagen');
+    const imgPreview = document.getElementById('img-preview');
+
+    // Vista previa de imagen rápida
+    imgInput.addEventListener('input', (e) => {
+      if(e.target.value) {
+        // Asumimos que tus fotos están en src/assets/img/
+        imgPreview.src = `../../img/${e.target.value}`;
+        imgPreview.style.display = 'block';
+      }
+    });
+
+    // Enviar datos al servidor
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const producto = {
+        nombre: document.getElementById('nombre').value,
+        precio: parseFloat(document.getElementById('precio').value),
+        categoria: document.getElementById('categoria').value,
+        imagen: document.getElementById('imagen').value,
+        stock: parseInt(document.getElementById('stock').value)
+      };
+
+      try {
+        const response = await fetch('/api/productos/nuevo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(producto)
+        });
+
+        const data = await response.json();
+
+        if (data.ok) {
+          alert('✅ ¡Éxito! Producto guardado con ID: ' + data.id);
+          form.reset();
+          imgPreview.style.display = 'none';
+          // Redirigir al inventario para ver el cambio
+          window.location.href = 'inventario.html';
+        } else {
+          alert('❌ Error al guardar: ' + data.message);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error de conexión con el servidor');
+      }
+    });
+  </script>
+</body>
+</html>

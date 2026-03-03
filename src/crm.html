@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ballers | CRM Historial</title>
+    <style>
+        :root { --primary: #ff6a00; --bg: #0b0b0f; --panel: #141419; --border: #2a2a32; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; padding: 40px; }
+        .timeline { border-left: 2px solid var(--primary); padding-left: 20px; max-width: 600px; margin: 0 auto; }
+        .item { 
+            background: var(--panel); border: 1px solid var(--border); 
+            padding: 15px; border-radius: 10px; margin-bottom: 20px; position: relative;
+        }
+        .item::before { 
+            content: ""; position: absolute; left: -31px; top: 15px; 
+            width: 15px; height: 15px; background: var(--primary); border-radius: 50%; 
+        }
+        .user { color: var(--primary); font-weight: bold; font-size: 1.1rem; }
+        .type { font-size: 0.8rem; background: #222; padding: 2px 6px; border-radius: 4px; }
+        .desc { color: #ccc; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center">Historial de Interacciones</h1>
+    <div id="historial" class="timeline">Cargando datos...</div>
+
+    <script>
+        async function cargar() {
+            try {
+                // El JS va a buscar los datos a la ruta que me mostraste en la foto
+                const res = await fetch('/api/crm/historial');
+                const datos = await res.json();
+                
+                const contenedor = document.getElementById('historial');
+                
+                // Si hay datos, los "dibujamos"
+                contenedor.innerHTML = datos.map(i => `
+                    <div class="item">
+                        <div class="user">${i.cliente_nombre}</div>
+                        <span class="type">${i.tipo}</span>
+                        <div class="desc">${i.descripcion}</div>
+                        <small style="color:#555">${new Date(i.fecha).toLocaleString()}</small>
+                    </div>
+                `).join('');
+            } catch (e) {
+                document.getElementById('historial').innerHTML = "Error al cargar datos";
+            }
+        }
+        window.onload = cargar;
+    </script>
+</body>
+</html>

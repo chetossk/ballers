@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Promociones | Ballers</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      background:#111;
+      color:#fff;
+      margin:0;
+      padding:0;
+    }
+
+    header{
+      background:#000;
+      padding:15px;
+      text-align:center;
+      font-size:20px;
+      font-weight:bold;
+    }
+
+    .container{
+      max-width:700px;
+      margin:40px auto;
+      background:#1a1a1a;
+      padding:25px;
+      border-radius:12px;
+      box-shadow:0 0 15px rgba(255,106,0,.2);
+    }
+
+    h2{
+      color:#ff6a00;
+      margin-bottom:20px;
+    }
+
+    input, textarea{
+      width:100%;
+      padding:10px;
+      margin-bottom:15px;
+      border-radius:8px;
+      border:1px solid #333;
+      background:#222;
+      color:#fff;
+    }
+
+    button{
+      background:#ff6a00;
+      border:none;
+      padding:10px 20px;
+      border-radius:8px;
+      color:#000;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    button:hover{
+      opacity:.9;
+    }
+
+    .mensaje{
+      margin-top:15px;
+      padding:10px;
+      border-radius:8px;
+      display:none;
+    }
+
+    .success{
+      background:#1e7e34;
+    }
+
+    .error{
+      background:#c82333;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  Ballers 🏀👟 - Enviar Promoción
+</header>
+
+<div class="container">
+
+  <h2>Enviar Promoción</h2>
+
+  <form id="promoForm">
+    <input id="asunto" placeholder="Asunto de la promoción" required>
+    <textarea id="mensaje" rows="5" placeholder="Mensaje de la promoción" required></textarea>
+    <button type="submit">Enviar promoción</button>
+  </form>
+
+  <div id="respuesta" class="mensaje"></div>
+
+</div>
+
+<script>
+document.getElementById('promoForm').addEventListener('submit', async function(e){
+  e.preventDefault(); // 🔥 evita que cambie de página
+
+  const asunto = document.getElementById('asunto').value.trim();
+  const mensaje = document.getElementById('mensaje').value.trim();
+  const respuesta = document.getElementById('respuesta');
+
+  if(!asunto || !mensaje){
+    mostrarMensaje('Completa todos los campos', false);
+    return;
+  }
+
+  try {
+
+    const res = await fetch('/admin/enviar-promocion', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ asunto, mensaje })
+    });
+
+    const r = await res.json();
+
+    if(r.ok){
+      mostrarMensaje('✅ Promoción enviada correctamente', true);
+      document.getElementById('promoForm').reset();
+    } else {
+      mostrarMensaje('❌ Error al enviar promoción', false);
+    }
+
+  } catch(error){
+    console.error(error);
+    mostrarMensaje('❌ Error de conexión con el servidor', false);
+  }
+});
+
+
+function mostrarMensaje(texto, exito){
+  const respuesta = document.getElementById('respuesta');
+  respuesta.style.display = 'block';
+  respuesta.textContent = texto;
+
+  if(exito){
+    respuesta.className = 'mensaje success';
+  } else {
+    respuesta.className = 'mensaje error';
+  }
+}
+</script>
+
+</body>
+</html>
