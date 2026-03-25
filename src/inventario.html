@@ -6,34 +6,37 @@
   <title>Inventario | Ballers (Admin)</title>
   <link rel="stylesheet" href="../../css/base.css"/>
   <style>
+    :root { --primary: #ff6a00; --bg: #0b0b0f; --panel: #141419; --border: #23232a; --muted: #888; }
     .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0}
     .toolbar .grow{flex:1 1 220px}
     table.inv{width:100%;border-collapse:separate;border-spacing:0 8px}
     table.inv thead th{font-weight:700;text-align:left;padding:10px 12px;color:var(--muted)}
-    table.inv tbody tr{background:var(--panel);border:1px solid #23232a}
+    table.inv tbody tr{background:var(--panel);border:1px solid var(--border)}
     table.inv tbody td{padding:12px}
     .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.85rem;border:1px solid #2a2a32}
     .badge.ok{background:#142b18; color:#aeeabf; border-color:#2e6a3f}
     .badge.off{background:#2a1a1a; color:#ff8a8a; border-color:#6a2e2e}
     .actions{display:flex;gap:8px;flex-wrap:wrap}
-    .btn-mini{padding:6px 10px;border-radius:10px;border:1px solid #2a2a32;background:#141419;color:var(--text);cursor:pointer}
-    .btn-mini:hover{background:#1b1b22}
+    .btn-mini{padding:6px 10px;border-radius:10px;border:1px solid #2a2a32;background:#141419;color:#fff;cursor:pointer;transition: 0.2s;}
+    .btn-mini:hover{background:var(--primary); border-color:var(--primary)}
     .btn-ghost{background:transparent}
     .section{background:linear-gradient(180deg,rgba(255,106,0,.06),transparent 60%),var(--panel);
-      border:1px solid #23232a;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+      border:1px solid var(--border);border-radius:12px;padding:22px;box-shadow: 0 4px 20px rgba(0,0,0,0.3)}
+    input, select { background: #000; border: 1px solid var(--border); color: #fff; padding: 8px; border-radius: 6px; }
   </style>
 </head>
 <body>
 
   <header class="header">
-    <div class="container header__inner" style="display:flex; align-items:center;">
-      <a class="logo" href="../../../../index.html">Ballers 🏀👟</a>
+    <div class="container header__inner" style="display:flex; align-items:center; padding: 15px 0;">
+      <a class="logo" href="../../../../index.html" style="text-decoration:none; font-size:1.5rem">Ballers 🏀👟</a>
       <nav id="mainnav" class="nav" style="margin-left:auto">
-        <ul>
+        <ul style="display:flex; list-style:none; gap:20px">
           <li><a href="index.html">Inicio</a></li>
-          <li><a class="active" href="inventario.html">Inventario</a></li>
+          <li><a class="active" href="inventario.html" style="color:var(--primary)">Inventario</a></li>
           <li><a href="usuarios.html">Usuarios</a></li>
-          <li><a href="productos.html">Productos (CRUD)</a></li>
+          <li><a href="proveedores.html">Proveedores (CRUD)</a></li>
+          <li><a href="productos.html">Productos</a></li>
         </ul>
       </nav>
     </div>
@@ -42,10 +45,11 @@
   <main class="container" style="padding:22px 0 64px">
     <section class="section">
       <h2 style="margin:0">Inventario Real (MySQL)</h2>
-      <p class="muted" style="margin:6px 0 0">Gestiona existencias directamente en la base de datos.</p>
+      <p class="muted" style="margin:6px 0 0; color:var(--muted)">Gestiona existencias con trazabilidad de movimientos y proveedores.</p>
 
       <div class="toolbar">
         <input id="q" class="grow" type="search" placeholder="Buscar por nombre o ID..." />
+        
         <select id="cat">
           <option value="all">Todas las categorías</option>
           <option value="sneakers">Sneakers</option>
@@ -53,12 +57,17 @@
           <option value="gorras">Gorras</option>
           <option value="accesorios">Accesorios</option>
         </select>
+
+        <select id="form-proveedor-id">
+          <option value="">Cargando proveedores...</option>
+        </select>
+
         <select id="sort">
           <option value="name-asc">Nombre (A–Z)</option>
           <option value="stock-asc">Menor Stock</option>
           <option value="stock-desc">Mayor Stock</option>
         </select>
-        <a class="btn" href="productos.html">Nuevo producto</a>
+        <a class="btn" href="productos.html" style="background:var(--primary); color:#fff; padding:8px 15px; border-radius:6px; text-decoration:none">Nuevo producto</a>
       </div>
 
       <div style="overflow:auto">
@@ -74,11 +83,10 @@
               <th>Acciones</th>
             </tr>
           </thead>
-          <tbody id="tbody">
-            </tbody>
+          <tbody id="tbody"></tbody>
         </table>
       </div>
-      <p id="tbl-info" class="muted" style="margin-top:8px"></p>
+      <p id="tbl-info" class="muted" style="margin-top:15px; color:var(--muted)"></p>
     </section>
   </main>
 
@@ -90,12 +98,25 @@
       const cat = $('#cat'); 
       const sort = $('#sort');
       const info = $('#tbl-info');
+      const provSelect = $('#form-proveedor-id');
 
       const money = n => Number(n).toLocaleString('es-MX',{style:'currency',currency:'MXN'});
 
-      let products = []; // Aquí guardaremos lo que venga de la DB
+      let products = [];
 
-      // FUNCIÓN PARA CARGAR DESDE LA API
+      // 1. CARGAR PROVEEDORES (Para el select del CRUD/Filtro)
+      async function vincularProveedores() {
+        try {
+          const res = await fetch('/api/proveedores');
+          const data = await res.json();
+          if(provSelect) {
+            provSelect.innerHTML = '<option value="all">Todos los Proveedores</option>' + 
+              data.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
+          }
+        } catch (e) { console.error("Error vinculando proveedores", e); }
+      }
+
+      // 2. CARGAR DATOS DEL INVENTARIO
       async function loadInventario() {
         try {
           const res = await fetch('/api/inventario');
@@ -118,8 +139,8 @@
         }
       }
 
+      // 3. RENDERIZAR TABLA CON FILTROS
       function render() {
-        // Filtros
         const term = q.value.toLowerCase();
         const categoryFilter = cat.value;
         
@@ -129,7 +150,6 @@
           return matchText && matchCat;
         });
 
-        // Orden
         if (sort.value === 'stock-asc') filtered.sort((a,b) => a.stock - b.stock);
         if (sort.value === 'stock-desc') filtered.sort((a,b) => b.stock - a.stock);
         if (sort.value === 'name-asc') filtered.sort((a,b) => a.name.localeCompare(b.name));
@@ -141,54 +161,68 @@
 
         tbody.innerHTML = filtered.map(p => `
           <tr>
-            <td>${p.sku}</td>
+            <td style="color:var(--primary); font-weight:bold">${p.sku}</td>
             <td><strong>${p.name}</strong></td>
             <td style="text-transform: capitalize;">${p.category}</td>
             <td>${money(p.price)}</td>
-            <td><strong style="font-size: 1.1rem; color: ${p.stock < 5 ? '#ff6b6b' : 'inherit'}">${p.stock}</strong></td>
+            <td>
+              <strong style="font-size: 1.1rem; color: ${p.stock <= 5 ? '#ff6b6b' : '#44ff88'}">
+                ${p.stock}
+              </strong>
+            </td>
             <td><span class="badge ${p.active ? 'ok' : 'off'}">${p.active ? 'Activo' : 'Inactivo'}</span></td>
             <td class="actions">
               <button class="btn-mini" onclick="updateStock(${p.id}, -1)">−</button>
               <button class="btn-mini" onclick="updateStock(${p.id}, 1)">+</button>
-              <button class="btn-mini btn-ghost" onclick="toggleStatus(${p.id})">${p.active ? 'Desactivar' : 'Activar'}</button>
+              <button class="btn-mini btn-ghost" onclick="toggleStatus(${p.id})">
+                ${p.active ? 'Desactivar' : 'Activar'}
+              </button>
             </td>
           </tr>
         `).join('');
 
-        info.textContent = `Mostrando ${filtered.length} productos de la base de datos.`;
+        info.textContent = `Mostrando ${filtered.length} productos. Los niveles rojos indican stock crítico (<= 5).`;
       }
 
-      // ACCIÓN: ACTUALIZAR STOCK EN DB
+      // 4. ACTUALIZAR STOCK (MOVIMIENTO SCM)
       window.updateStock = async (id, delta) => {
         const item = products.find(p => p.id === id);
-        const nuevoStock = Math.max(0, item.stock + delta);
-        
+        if (delta < 0 && item.stock <= 0) return;
+
+        const payload = {
+            producto_id: id,
+            tipo: delta > 0 ? 'entrada' : 'salida',
+            cantidad: Math.abs(delta),
+            motivo: delta > 0 ? 'reposicion' : 'ajuste'
+        };
+
         try {
-          const res = await fetch(`/api/inventario/${id}`, {
-            method: 'PUT',
+          const res = await fetch('/api/inventario/movimiento', {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ stock: nuevoStock, active: item.active ? 1 : 0 })
+            body: JSON.stringify(payload)
           });
           
           if (res.ok) {
-            item.stock = nuevoStock;
+            item.stock += delta;
             render();
+          } else {
+            const err = await res.json();
+            alert("Error: " + err.message);
           }
-        } catch (e) { alert("Error al actualizar stock"); }
+        } catch (e) { alert("Error de conexión"); }
       };
 
-      // ACCIÓN: CAMBIAR ESTADO EN DB
+      // 5. CAMBIAR ESTADO ACTIVO/INACTIVO
       window.toggleStatus = async (id) => {
         const item = products.find(p => p.id === id);
         const nuevoEstado = !item.active;
-
         try {
           const res = await fetch(`/api/inventario/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ stock: item.stock, active: nuevoEstado ? 1 : 0 })
           });
-          
           if (res.ok) {
             item.active = nuevoEstado;
             render();
@@ -196,13 +230,14 @@
         } catch (e) { alert("Error al cambiar estado"); }
       };
 
-      // Eventos de búsqueda
+      // Listeners
       q.addEventListener('input', render);
       cat.addEventListener('change', render);
       sort.addEventListener('change', render);
 
-      // Carga inicial
-      loadInventario();
+      // Carga Inicial
+      await vincularProveedores();
+      await loadInventario();
     })();
   </script>
 </body>

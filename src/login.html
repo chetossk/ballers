@@ -2,188 +2,136 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Login - Ballers</title>
+    <title>Ballers 🏀 - Sistema ERP</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #121212;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        :root { --accent: #f58233; --bg: #121212; --panel: #1a1a1a; }
+        body { 
+            background-color: var(--bg); color: white; margin: 0; 
+            font-family: 'Segoe UI', sans-serif; min-height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+        }
+        /* LOGIN CARD */
+        .login-card { 
+            background: white; padding: 2.5rem; border-radius: 15px; 
+            width: 100%; max-width: 400px; text-align: center; color: #333;
+        }
+        .form-group { margin-bottom: 1.2rem; text-align: left; }
+        .form-group input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn { 
+            width: 100%; padding: 14px; background: var(--accent); color: white; 
+            border: none; border-radius: 8px; font-weight: bold; cursor: pointer; 
         }
 
-        .login-card {
-            background: #ffffff;
-            padding: 2.5rem;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
+        /* PANEL ADMIN (Lo que se perdió) */
+        #admin-panel { display: none; width: 90%; max-width: 1000px; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .grid-container { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; 
         }
-
-        .login-card h1 { 
-            color: #1a1a1a;
-            margin-bottom: 0.5rem;
-            font-size: 2rem;
+        .card { 
+            background: var(--panel); padding: 30px; border-radius: 12px; 
+            border-bottom: 4px solid var(--accent); transition: 0.3s;
         }
-
-        .login-card p { 
-            color: #555;
-            margin-bottom: 1.5rem;
+        .card:hover { transform: translateY(-5px); background: #222; }
+        .card h3 { color: white; margin-top: 0; }
+        .card p { color: #888; font-size: 0.9rem; }
+        .card-btn { 
+            display: inline-block; margin-top: 15px; padding: 10px 20px; 
+            background: var(--accent); color: white; text-decoration: none; border-radius: 5px; 
         }
-
-        .form-group {
-            margin-bottom: 1.2rem;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
-            color: #333;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 1rem;
-            color: #000;
-            background-color: #fff;
-        }
-
-        .form-group input:focus {
-            border-color: #f58233;
-            outline: none;
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background-color: #f58233;
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 1rem;
-        }
-
-        .btn-login:hover {
-            background-color: #e67622;
-        }
-
-        #error-box {
-            background-color: #ffebee;
-            color: #c62828;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 1rem;
-            display: none;
-            font-size: 0.9rem;
-            border: 1px solid #ef9a9a;
-        }
-
-        .footer-links {
-            margin-top: 1.5rem;
-            font-size: 0.9rem;
-        }
-
-        .footer-links a {
-            color: #f58233;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .footer-links a:hover {
-            text-decoration: underline;
-        }
-
-        .back-link {
-            display: block;
-            margin-top: 1rem;
-            color: #888;
-            text-decoration: none;
-        }
+        .logout-btn { background: #333; color: white; padding: 8px 15px; border-radius: 5px; cursor: pointer; border: none; }
     </style>
 </head>
 <body>
 
-<div class="login-card">
-    <h1>Ballers 🏀</h1>
-    <p>Accede a tu cuenta oficial</p>
-    
-    <div id="error-box"></div>
+    <div id="login-section" class="login-card">
+        <h1 style="color:#1a1a1a">Ballers 🏀</h1>
+        <p>Inicia sesión para gestionar el ERP</p>
+        <div id="error-box" style="color: red; display:none; margin-bottom:10px;"></div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Correo</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" class="btn">Entrar al Sistema</button>
+        </form>
+    </div>
 
-    <form id="loginForm">
-        <div class="form-group">
-            <label>Correo electrónico</label>
-            <input type="email" id="email" placeholder="ejemplo@outlook.com" required>
+    <div id="admin-panel">
+        <div class="admin-header">
+            <h2>Ballers 🏀 <span style="font-weight: normal; font-size: 1rem; color: var(--accent);">Panel Admin</span></h2>
+            <button class="logout-btn" onclick="logout()">Salir</button>
         </div>
         
-        <div class="form-group">
-            <label>Contraseña</label>
-            <input type="password" id="password" placeholder="••••••••" required>
+        <div class="grid-container">
+            <div class="card">
+                <h3>Inventario</h3>
+                <p>Control de stock, tallas y trazabilidad MySQL.</p>
+                <a href="inventario.html" class="card-btn">Gestionar</a>
+            </div>
+            <div class="card">
+                <h3>Proveedores SCM</h3>
+                <p>Pedidos y gestión de suministros.</p>
+                <a href="proveedores.html" class="card-btn">Ir a Proveedores</a>
+            </div>
+            <div class="card">
+                <h3>Métricas CRM</h3>
+                <p>Análisis de ventas y métricas de clientes.</p>
+                <a href="dashboard-erp.html" class="card-btn">Ver métricas</a>
+            </div>
+            <div class="card">
+                <h3>Usuarios</h3>
+                <p>Gestión de roles y accesos al sistema.</p>
+                <a href="usuarios.html" class="card-btn">Ver lista</a>
+            </div>
         </div>
-
-        <button type="submit" class="btn-login">Entrar</button>
-    </form>
-
-    <div class="footer-links">
-        ¿No tienes cuenta? <a href="registro.html">Regístrate aquí</a>
-        <a href="index.html" class="back-link">← Volver a la tienda</a>
     </div>
-</div>
 
 <script>
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const errorBox = document.getElementById('error-box');
+const loginSection = document.getElementById('login-section');
+const adminPanel = document.getElementById('admin-panel');
 
-    errorBox.style.display = 'none';
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
 
     try {
-
-        const response = await fetch('/api/login', {
+        const res = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
+        const data = await res.json();
 
-        const data = await response.json();
+        if (data.success) {
+            localStorage.setItem('ballers_id', data.id);
+            const rol = data.role.toLowerCase();
 
-        if (!data.success) {
-            errorBox.innerText = data.message || "Credenciales incorrectas";
-            errorBox.style.display = 'block';
-            return;
+            if (rol === 'admin' || rol === 'administrador') {
+                // AQUÍ ESTÁ EL TRUCO: Ocultamos el login y mostramos las tarjetas
+                loginSection.style.display = 'none';
+                adminPanel.style.display = 'block';
+                document.body.style.alignItems = 'flex-start';
+                document.body.style.paddingTop = '50px';
+            } else {
+                window.location.href = 'catalog_user.html';
+            }
+        } else {
+            alert("Error: " + data.message);
         }
-
-        // 🔥 Guardar datos correctamente
-        localStorage.setItem('usuario_id', data.id);
-        localStorage.setItem('ballers_role', data.role);
-
-        // Redirigir
-        window.location.href = 'index.html';
-
-    } catch (err) {
-        console.error("Error de conexión:", err);
-        errorBox.innerText = "Error: El servidor no responde.";
-        errorBox.style.display = 'block';
-    }
+    } catch (err) { alert("Error de conexión"); }
 });
-</script>
 
+function logout() {
+    localStorage.clear();
+    location.reload();
+}
+</script>
 </body>
 </html>

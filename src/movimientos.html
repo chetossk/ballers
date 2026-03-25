@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Movimientos de Inventario | Ballers</title>
+    <style>
+        :root { --primary: #ff6a00; --bg: #0b0b0f; --panel: #141419; --border: #2a2a32; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .card { background: var(--panel); border: 1px solid var(--border); padding: 25px; border-radius: 12px; max-width: 600px; margin: 40px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 25px; font-weight: 700; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; color: #888; font-size: 0.9rem; }
+        select, input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        select:focus, input:focus { border-color: var(--primary); outline: none; }
+        button { width: 100%; padding: 14px; background: var(--primary); border: none; color: #fff; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        button:hover { background: #e65a00; transform: translateY(-2px); }
+        .nav-back { text-align: center; margin-top: 20px; }
+        .nav-back a { color: #555; text-decoration: none; font-size: 0.8rem; }
+        .nav-back a:hover { color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>Registrar Movimiento</h1>
+        <form id="form-movimiento">
+            <div class="form-group">
+                <label>Seleccionar Producto</label>
+                <select id="producto_id" required>
+                    <option value="">Cargando productos...</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Tipo de Movimiento</label>
+                <select id="tipo">
+                    <option value="entrada">Entrada (Compra/Reposición)</option>
+                    <option value="salida">Salida (Venta/Ajuste)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Cantidad</label>
+                <input type="number" id="cantidad" required min="1" placeholder="Ej: 10">
+            </div>
+
+            <div class="form-group">
+                <label>Motivo</label>
+                <select id="motivo">
+                    <option value="venta">Venta</option>
+                    <option value="reposicion">Reposición</option>
+                    <option value="ajuste">Ajuste de Inventario</option>
+                </select>
+            </div>
+
+            <button type="submit">Guardar Movimiento</button>
+        </form>
+
+        <div class="nav-back">
+            <a href="dashboard_scm.html">← Volver al Panel Logístico</a>
+        </div>
+    </div>
+
+    <script>
+        // 1. Cargar la lista de productos al abrir la página
+        async function cargarProductos() {
+            try {
+                const res = await fetch('/api/productos');
+                const productos = await res.json();
+                const select = document.getElementById('producto_id');
+                
+                select.innerHTML = '<option value="">-- Seleccione un artículo --</option>' + 
+                    productos.map(p => `<option value="${p.id}">${p.name} (Stock: ${p.stock})</option>`).join('');
+            } catch (error) {
+                console.error("Error al cargar productos:", error);
+            }
+        }
+
+        // 2. Enviar el movimiento
+        document.getElementById('form-movimiento').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                producto_id: document.getElementById('producto_id').value,
+                tipo: document.getElementById('tipo').value,
+                cantidad: parseInt(document.getElementById('cantidad').value),
+                motivo: document.getElementById('motivo').value
+            };
+
+            try {
+                const res = await fetch('/api/inventario/movimiento', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    alert('✅ Éxito: ' + result.message);
+                    e.target.reset();
+                    cargarProductos(); // Recargar la lista para ver el nuevo stock
+                } else {
+                    alert('❌ Error: ' + result.message);
+                }
+            } catch (error) {
+                alert('❌ Error de conexión con el servidor');
+            }
+        };
+
+        // Iniciar carga
+        cargarProductos();
+    </script>
+</body>
+</html>

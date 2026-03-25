@@ -57,8 +57,7 @@
     <section class="section">
       <h2 style="margin-bottom: 20px;">Tu Carrito de Compras</h2>
 
-      <div id="cart-list">
-        </div>
+      <div id="cart-list"></div>
 
       <div id="cart-summary" class="total-section" style="display: none;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
@@ -89,8 +88,10 @@
       const emptyEl = document.getElementById('empty-msg');
       const totalVal = document.getElementById('total-val');
       const subtotalVal = document.getElementById('subtotal-val');
+      const btnPago = document.getElementById('btn-ir-a-pago');
 
-      const userId = localStorage.getItem('ballers_id') || 9;
+      // Sincronización con el ID de usuario del LocalStorage
+      const userId = localStorage.getItem('ballers_id') || 9; 
       const money = n => Number(n).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
       let cart = [];
@@ -108,7 +109,7 @@
       }
 
       function render() {
-        if (cart.length === 0) {
+        if (!cart || cart.length === 0) {
           listEl.innerHTML = '';
           summaryEl.style.display = 'none';
           emptyEl.style.display = 'block';
@@ -119,8 +120,8 @@
         summaryEl.style.display = 'block';
 
         listEl.innerHTML = cart.map(item => `
-          <div class="cart-item" data-id="${item.id}">
-            <img src="${item.image || '/assets/img/placeholder.jpg'}" alt="${item.name}">
+          <div class="cart-item">
+            <img src="${item.image || '../../assets/img/placeholder.jpg'}" alt="${item.name}">
             <div>
               <h3 style="margin:0">${item.name}</h3>
               <p class="muted" style="margin:5px 0">${money(item.price)}</p>
@@ -158,11 +159,39 @@
         loadCart();
       };
 
-      // BOTÓN HACIA LA PÁGINA DE PAGO
-      document.getElementById('btn-ir-a-pago').addEventListener('click', () => {
-        const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-        // Redirigimos a pago.html con el total en la URL
-        window.location.href = `pago.html?total=${total}`;
+      // Lógica de Checkout corregida
+      btnPago.addEventListener('click', async () => {
+        const totalCompra = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        
+        btnPago.innerText = "Procesando pedido...";
+        btnPago.disabled = true;
+
+        try {
+          const res = await fetch('/api/checkout', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-user-id': userId 
+            },
+            body: JSON.stringify({ direccion: "Dirección de entrega predeterminada" })
+          });
+
+          const data = await res.json();
+
+          if (data.success) {
+            // Redirección exitosa usando el total calculado localmente
+            window.location.href = `pago.html?total=${totalCompra}`;
+          } else {
+            alert("Error al procesar: " + (data.message || "Error desconocido"));
+            btnPago.innerText = "Continuar al Pago Seguro";
+            btnPago.disabled = false;
+          }
+        } catch (error) {
+          console.error("Error en el checkout", error);
+          alert("Hubo un problema de conexión con el servidor.");
+          btnPago.innerText = "Continuar al Pago Seguro";
+          btnPago.disabled = false;
+        }
       });
 
       loadCart();

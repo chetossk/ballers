@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Madurez ERP | Ballers 🏀</title>
+    <link rel="stylesheet" href="css/base.css">
+    <style>
+        .maturity-card { background: #141419; padding: 30px; border-radius: 15px; border: 1px solid #23232a; margin-top: 30px; }
+        .progress-container { background: #222; height: 25px; border-radius: 15px; margin: 30px 0; overflow: hidden; position: relative; }
+        .progress-bar { background: linear-gradient(90deg, #ff6a00, #ffc400); height: 100%; transition: 1s ease-in-out; width: 0%; }
+        
+        .stages { display: flex; justify-content: space-between; color: #888; font-size: 0.85rem; }
+        .stage-item { text-align: center; flex: 1; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .stage-item.active { color: #fff; background: rgba(255, 106, 0, 0.15); font-weight: bold; border: 1px solid #ff6a00; }
+        
+        .description { background: #000; padding: 15px; border-radius: 10px; border-left: 4px solid #ff6a00; margin-top: 20px; color: #ccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Evaluación de Etapa de Adopción ERP</h1>
+        
+        <div class="maturity-card">
+            <h3>Nivel de Implementación Digital</h3>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="bar"></div>
+            </div>
+
+            <div class="stages">
+                <div class="stage-item" id="s-basico" onclick="actualizarNivel('Básico', 25)">1. Básico<br><small>Registro Manual</small></div>
+                <div class="stage-item" id="s-integrado" onclick="actualizarNivel('Integrado', 50)">2. Integrado<br><small>CRM + SCM</small></div>
+                <div class="stage-item" id="s-automatizado" onclick="actualizarNivel('Automatizado', 75)">3. Automatizado<br><small>Venta Directa</small></div>
+                <div class="stage-item" id="s-optimizado" onclick="actualizarNivel('Optimizado', 100)">4. Optimizado<br><small>Reportes Pro</small></div>
+            </div>
+
+            <div id="info-teoria" class="description">
+                Selecciona una etapa para ver su impacto en la empresa.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const descripciones = {
+            'Básico': 'Etapa 1: Los datos están aislados. Se usa el sistema como una agenda digital.',
+            'Integrado': 'Etapa 2: Clientes (CRM) e Inventario (SCM) comparten la misma base de datos.',
+            'Automatizado': 'Etapa 3: Las ventas descuentan stock y generan movimientos sin intervención manual.',
+            'Optimizado': 'Etapa 4: El sistema genera KPIs y reportes para la toma de decisiones gerenciales.'
+        };
+
+        async function cargarNivelActual() {
+            const res = await fetch('/api/erp/estado');
+            const data = await res.json();
+            
+            const mapaProgreso = { 'Básico': 25, 'Integrado': 50, 'Automatizado': 75, 'Optimizado': 100 };
+            const pct = mapaProgreso[data.nivel_madurez] || 25;
+            
+            aplicarCambioVisual(data.nivel_madurez, pct);
+        }
+
+        async function actualizarNivel(nivel, pct) {
+            const res = await fetch('/api/erp/estado', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ nuevoNivel: nivel })
+            });
+
+            if(res.ok) {
+                aplicarCambioVisual(nivel, pct);
+                alert("Etapa de adopción actualizada en el ERP.");
+            }
+        }
+
+        function aplicarCambioVisual(nivel, pct) {
+            // Mover barra
+            document.getElementById('bar').style.width = pct + '%';
+            
+            // Actualizar descripción
+            document.getElementById('info-teoria').innerText = descripciones[nivel];
+
+            // Resaltar item
+            document.querySelectorAll('.stage-item').forEach(el => el.classList.remove('active'));
+            const idMap = { 'Básico': 's-basico', 'Integrado': 's-integrado', 'Automatizado': 's-automatizado', 'Optimizado': 's-optimizado' };
+            document.getElementById(idMap[nivel]).classList.add('active');
+        }
+
+        cargarNivelActual();
+    </script>
+</body>
+</html>

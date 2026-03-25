@@ -4,60 +4,36 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Productos | Ballers Admin</title>
-  <link rel="stylesheet" href="../../css/base.css">
   <style>
+    :root { 
+      --primary: #ff6a00; --panel: #141419; --bg: #0b0b0f; 
+      --radius: 12px; --muted: #888; --shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+    body { background-color: var(--bg); color: white; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
     .form-container {
-      max-width: 600px;
-      margin: 40px auto;
-      background: var(--panel);
-      padding: 30px;
-      border-radius: var(--radius);
-      border: 1px solid #23232a;
-      box-shadow: var(--shadow);
+      max-width: 650px; margin: 40px auto; background: var(--panel);
+      padding: 30px; border-radius: var(--radius); border: 1px solid #23232a; box-shadow: var(--shadow);
     }
     .form-group { margin-bottom: 20px; }
     .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--muted); }
-    .form-group input, .form-group select {
-      width: 100%;
-      padding: 12px;
-      background: #141419;
-      border: 1px solid #2a2a32;
-      border-radius: 8px;
-      color: white;
-      font-size: 1rem;
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 12px; background: #000; border: 1px solid #2a2a32;
+      border-radius: 8px; color: white; font-size: 1rem; box-sizing: border-box;
     }
-    .form-group input:focus { border-color: var(--primary); outline: none; }
-    .preview-img {
-      width: 100%;
-      height: 200px;
-      object-fit: contain;
-      background: #000;
-      border-radius: 8px;
-      margin-top: 10px;
-      display: none;
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .btn-block { 
+      width: 100%; padding: 15px; background: var(--primary); border: none; 
+      color: white; font-weight: bold; text-transform: uppercase; cursor: pointer; border-radius: 8px;
     }
-    .btn-block { width: 100%; padding: 15px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
+    .btn-block:hover { background: #e65a00; }
   </style>
 </head>
 <body>
 
-  <header class="header">
-    <div class="container header__inner" style="display:flex; align-items:center;">
-      <a class="logo" href="../../../../index.html">Ballers Admin 🏀</a>
-      <nav class="nav" style="margin-left:auto">
-        <ul>
-          <li><a href="inventario.html">Inventario</a></li>
-          <li><a class="active" href="productos.html">Nuevo Producto</a></li>
-          <li><a href="usuarios.html">Usuarios</a></li>
-        </ul>
-      </nav>
-    </div>
-  </header>
-
   <main class="container">
     <div class="form-container">
-      <h2 id="form-title">Agregar Nuevo Producto</h2>
-      <p class="muted">Llena los campos para actualizar el catálogo de la tienda.</p>
+      <h2>Agregar Nuevo Producto</h2>
+      <p style="color:var(--muted)">Llena los campos para actualizar el catálogo y configurar la lógica SCM.</p>
       <hr style="border: 0; border-top: 1px solid #23232a; margin: 20px 0;">
 
       <form id="product-form">
@@ -66,7 +42,12 @@
           <input type="text" id="nombre" placeholder="Ej. Jordan 4 Retro Military Blue" required>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="form-group">
+          <label>Descripción / Detalles</label>
+          <textarea id="descripcion" rows="2" placeholder="Breve descripción del artículo..."></textarea>
+        </div>
+
+        <div class="grid">
           <div class="form-group">
             <label>Precio ($MXN)</label>
             <input type="number" id="precio" step="0.01" placeholder="0.00" required>
@@ -77,51 +58,53 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Categoría</label>
-          <select id="categoria">
-            <option value="sneakers">Sneakers</option>
-            <option value="jerseys">Jerseys</option>
-            <option value="gorras">Gorras</option>
-            <option value="accesorios">Accesorios</option>
-          </select>
+        <div class="grid">
+          <div class="form-group">
+            <label>Stock Mínimo (Alerta)</label>
+            <input type="number" id="stock_minimo" value="5" required>
+          </div>
+          <div class="form-group">
+            <label>Estrategia Logística</label>
+            <select id="estrategia">
+              <option value="PULL">PULL (Manual)</option>
+              <option value="PUSH">PUSH (Automática)</option>
+            </select>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>Nombre de la Imagen (archivo)</label>
-          <input type="text" id="imagen" placeholder="nombre-archivo.jpg" required>
-          <img id="img-preview" class="preview-img" src="" alt="Vista previa">
+        <div class="grid">
+          <div class="form-group">
+            <label>Categoría</label>
+            <select id="categoria">
+              <option value="sneakers">Sneakers</option>
+              <option value="jerseys">Jerseys</option>
+              <option value="gorras">Gorras</option>
+              <option value="accesorios">Accesorios</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Imagen (nombre archivo)</label>
+            <input type="text" id="imagen" placeholder="nombre-archivo.jpg">
+          </div>
         </div>
 
-        <button type="submit" class="btn btn-block">Guardar en Base de Datos</button>
+        <button type="submit" class="btn-block">Guardar en Base de Datos</button>
       </form>
     </div>
   </main>
 
   <script>
-    const form = document.getElementById('product-form');
-    const imgInput = document.getElementById('imagen');
-    const imgPreview = document.getElementById('img-preview');
-
-    // Vista previa de imagen rápida
-    imgInput.addEventListener('input', (e) => {
-      if(e.target.value) {
-        // Asumimos que tus fotos están en src/assets/img/
-        imgPreview.src = `../../img/${e.target.value}`;
-        imgPreview.style.display = 'block';
-      }
-    });
-
-    // Enviar datos al servidor
-    form.addEventListener('submit', async (e) => {
+    document.getElementById('product-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-
       const producto = {
         nombre: document.getElementById('nombre').value,
+        descripcion: document.getElementById('descripcion').value,
         precio: parseFloat(document.getElementById('precio').value),
+        stock_actual: parseInt(document.getElementById('stock').value),
+        stock_minimo: parseInt(document.getElementById('stock_minimo').value),
+        estrategia_logistica: document.getElementById('estrategia').value,
         categoria: document.getElementById('categoria').value,
-        imagen: document.getElementById('imagen').value,
-        stock: parseInt(document.getElementById('stock').value)
+        imagen: document.getElementById('imagen').value
       };
 
       try {
@@ -130,21 +113,13 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(producto)
         });
-
         const data = await response.json();
-
         if (data.ok) {
-          alert('✅ ¡Éxito! Producto guardado con ID: ' + data.id);
-          form.reset();
-          imgPreview.style.display = 'none';
-          // Redirigir al inventario para ver el cambio
-          window.location.href = 'inventario.html';
-        } else {
-          alert('❌ Error al guardar: ' + data.message);
+          alert('✅ ¡Éxito! Producto guardado.');
+          window.location.href = 'metricas.html';
         }
       } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Error de conexión con el servidor');
+        alert('❌ Error de conexión');
       }
     });
   </script>

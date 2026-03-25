@@ -4,8 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Catálogo | Ballers</title>
-
   <link rel="stylesheet" href="./css/base.css"/>
+  <style>
+    /* Estilos extra para feedback visual */
+    .btn-success { background-color: #25D366 !important; border-color: #25D366 !important; }
+    .muted { font-size: 0.85rem; color: #888; display: block; margin-top: 8px; }
+  </style>
 </head>
 <body>
 
@@ -19,9 +23,9 @@
           <li><a href="./index.html">Inicio</a></li>
           <li><a class="active" href="./catalog_user.html" aria-current="page">Catálogo</a></li>
           <li><a href="./cart.html">Carrito</a></li>
-          <li><a href="./comprados.html">Ver productos comprados</a></li>
+          <li><a href="./comprados.html">Mis Compras</a></li>
           <li><a href="./seguimiento.html">Seguimiento</a></li>
-          <li><a href="./editar.html">Editar información</a></li>
+          <li><a href="./editar.html">Mi Perfil</a></li>
         </ul>
       </nav>
     </div>
@@ -55,7 +59,7 @@
 
   <footer class="footer">
     <div class="container footer__inner">
-      <small>© 2025 Ballers. Todos los derechos reservados.</small>
+      <small>© 2026 Ballers Store. Todos los derechos reservados.</small>
     </div>
   </footer>
 
@@ -67,6 +71,7 @@
 
     const money = n => Number(n).toLocaleString('es-MX', { style:'currency', currency:'MXN' });
 
+    // Normalización para SCM e inventario
     const normalizeCategory = (cat) => {
       const c = String(cat || '').toLowerCase().trim();
       const map = {
@@ -78,8 +83,7 @@
         'calzado': 'sneakers',
         'tenis': 'sneakers',
         'sneakers': 'sneakers',
-        'accesorios': 'accesorios',
-        'accessories': 'accesorios'
+        'accesorios': 'accesorios'
       };
       return map[c] || c;
     };
@@ -88,15 +92,13 @@
       if (!p) return '';
       if (/^https?:\/\//i.test(p)) return p;
       if (p.startsWith('src/')) return '/' + p.replace(/^src\//, '');
-      if (p.startsWith('assets/')) return '/' + p;
-      if (p.startsWith('/')) return p;
       return p;
     };
 
     let products = [];
     try {
       const res = await fetch('/api/productos', { cache: 'no-store' });
-      if (!res.ok) throw new Error('No se pudo cargar el catálogo (API)');
+      if (!res.ok) throw new Error('No se pudo cargar el catálogo');
       const data = await res.json();
 
       products = data.map(p => ({
@@ -109,18 +111,14 @@
         popularity: p.popularity || 0
       }));
     } catch (err) {
-      grid.innerHTML = `
-        <article class="card" style="padding:16px">
-          <h3>Error</h3>
-          <p>${err.message}</p>
-        </article>`;
+      grid.innerHTML = `<p>Error: ${err.message}</p>`;
       return;
     }
 
     function cardTemplate(p) {
       const bg = p.image
         ? `background:url('${p.image}') center/cover no-repeat`
-        : `background:linear-gradient(135deg, rgba(255,106,0,.18), rgba(255,209,102,.18))`;
+        : `background:linear-gradient(135deg, #222, #111)`;
 
       return `
         <article class="card" data-category="${p.category}">
@@ -134,101 +132,81 @@
                 Añadir al carrito
               </button>
             </div>
-            <p class="muted" data-msg="${p.id}" style="margin:10px 0 0; min-height:18px;"></p>
+            <p class="muted" data-msg="${p.id}"></p>
           </div>
         </article>`;
     }
 
     let current = [...products];
 
-    function applyFilters() {
-      const active = document.querySelector('.chip.is-active');
-      const cat = active?.dataset?.cat || 'todo';
-      current = cat === 'todo' ? [...products] : products.filter(p => p.category === cat);
-    }
-
-    function applySort() {
-      const v = select.value;
-      if (v === 'precio-asc')  current.sort((a,b)=>a.price-b.price);
-      if (v === 'precio-desc') current.sort((a,b)=>b.price-a.price);
-
-      if (v === 'nuevo') {
-        current.sort((a,b) => {
-          const da = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const db = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return db - da;
-        });
-      }
-
-      if (v === 'popular') {
-        current.sort((a,b) => (b.popularity||0) - (a.popularity||0));
-      }
-    }
-
     function render() {
-      grid.innerHTML = current.length
-        ? current.map(cardTemplate).join('')
-        : `<article class="card" style="padding:16px">
-            <h3>No hay productos</h3>
-            <p class="muted">Prueba otro filtro.</p>
-          </article>`;
+      grid.innerHTML = current.length ? current.map(cardTemplate).join('') : '<p>No hay productos.</p>';
     }
 
+    // Lógica de filtrado y ordenamiento
     chips.forEach(chip => chip.addEventListener('click', () => {
       chips.forEach(c => c.classList.remove('is-active'));
       chip.classList.add('is-active');
-      applyFilters(); applySort(); render();
+      const cat = chip.dataset.cat;
+      current = cat === 'todo' ? [...products] : products.filter(p => p.category === cat);
+      render();
     }));
 
-    select.addEventListener('change', () => {
-      applySort(); render();
-    });
-
-    applyFilters();
-    applySort();
     render();
 
-    // ✅ Agregar al carrito REAL (sin redirigir)
+    // ✅ LÓGICA DE CARRITO CORREGIDA
     grid.addEventListener('click', async (e) => {
       const btn = e.target.closest('[data-add]');
       if (!btn) return;
 
-      const productId = Number(btn.dataset.add);
+      // 1. Validar sesión desde localStorage
+      const userId = localStorage.getItem('ballers_user_id'); 
+      if (!userId) {
+        alert("Inicia sesión para comprar en Ballers Store.");
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const productId = btn.dataset.add;
       const msgEl = document.querySelector(`[data-msg="${productId}"]`);
 
       btn.disabled = true;
-      const old = btn.textContent;
-      btn.textContent = 'Agregando...';
-      if (msgEl) msgEl.textContent = '';
+      const originalText = btn.textContent;
+      btn.textContent = 'Procesando...';
 
       try {
         const resp = await fetch('/api/carrito', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ producto_id: productId, cantidad: 1 })
+          // 2. Enviamos el usuario_id para que el ERP lo registre
+          body: JSON.stringify({ 
+            usuario_id: userId, 
+            producto_id: productId, 
+            cantidad: 1 
+          })
         });
 
-        if (!resp.ok) throw new Error('No se pudo agregar al carrito');
+        if (!resp.ok) throw new Error('Error al conectar con el servidor');
 
-        // Feedback visual y se queda en catálogo
-        btn.textContent = 'Agregado ✓';
-        if (msgEl) msgEl.textContent = 'Producto agregado al carrito.';
+        // 3. Feedback visual de éxito
+        btn.classList.add('btn-success');
+        btn.textContent = '¡Agregado! ✓';
+        if (msgEl) msgEl.textContent = 'Producto listo en tu carrito.';
 
-        // Regresa el botón a normal después de 1.2s
         setTimeout(() => {
           btn.disabled = false;
-          btn.textContent = old;
+          btn.classList.remove('btn-success');
+          btn.textContent = originalText;
           if (msgEl) msgEl.textContent = '';
-        }, 1200);
+        }, 2000);
 
       } catch (err) {
-        alert(err.message);
+        alert("Hubo un problema: " + err.message);
         btn.disabled = false;
-        btn.textContent = old;
+        btn.textContent = originalText;
       }
     });
   })();
   </script>
-
 </body>
 </html>

@@ -8,7 +8,22 @@
   <style>
     .hidden { display: none !important; }
 
-    /* Bloque de promos (ligero, sin romper tu estilo) */
+    /* Estilo de Alerta de Stock Bajo */
+    .stock-alert {
+      background: rgba(255, 68, 68, 0.15);
+      border: 1px solid #ff4444;
+      color: #ff4444;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
     .promo-box{
       border:1px solid #262626;
       background:#111;
@@ -17,36 +32,33 @@
       box-shadow:0 8px 24px rgba(0,0,0,.35);
       margin: 14px 0 40px;
     }
-    .promo-title{
-      margin:0 0 6px;
-      font-size:1.25rem;
-      color:#ff6a00;
-    }
-    .promo-sub{
-      margin:0 0 12px;
-      color: var(--muted);
-      font-size:0.95rem;
-      line-height:1.35;
-    }
-    .promo-list{
-      margin:10px 0 14px 18px;
-      color:#e0e0e0;
-      font-size:0.95rem;
-    }
+    .promo-title{ margin:0 0 6px; font-size:1.25rem; color:#ff6a00; }
+    .promo-sub{ margin:0 0 12px; color: #888; font-size:0.95rem; line-height:1.35; }
+    .promo-list{ margin:10px 0 14px 18px; color:#e0e0e0; font-size:0.95rem; }
     .promo-list li{ margin:6px 0; }
-    .promo-actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
+    .promo-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+
+    .grid-admin {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
     }
+
+    /* Estilos para las Cards del Admin */
+    .card { background: #141419; border: 1px solid #2a2a32; padding: 20px; border-radius: 12px; }
+    .btn { 
+        display: inline-block; padding: 10px 20px; background: #ff6a00; color: #fff; 
+        text-decoration: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+    }
+    .btn--ghost { background: transparent; border: 1px solid #ff6a00; }
   </style>
 </head>
 <body>
 
 <header class="header">
   <div class="container header__inner">
-    <a class="logo" href="/">Ballers <span aria-hidden="true">🏀👟</span></a>
+    <a class="logo" href="index.html">Ballers <span>🏀👟</span></a>
 
     <div class="search">
       <input type="text" placeholder="Buscar sneakers...">
@@ -57,7 +69,7 @@
 
     <nav id="main-nav" class="nav">
       <ul id="nav-user" class="hidden">
-        <li><a class="active" href="#">Inicio</a></li>
+        <li><a class="active" href="index.html">Inicio</a></li>
         <li><a href="catalog_user.html">Catálogo</a></li>
         <li><a href="cart.html">Carrito</a></li>
         <li><a href="comprados.html">Mis Compras</a></li>
@@ -65,6 +77,7 @@
       <ul id="nav-admin" class="hidden">
         <li><a id="admin-label" class="active">Panel Admin</a></li>
         <li><a href="inventario.html">Inventario</a></li>
+        <li><a href="proveedores.html">Proveedores</a></li> 
         <li><a href="usuarios.html">Usuarios</a></li>
         <li><a href="productos.html">Productos</a></li>
       </ul>
@@ -82,62 +95,66 @@
     <div class="container hero__inner">
       <div class="hero__copy">
         <h1>Moda urbana inspirada en el básquet</h1>
-        <p>Descubre los sneakers más exclusivos y accesorios de temporada con envíos a todo el país.</p>
+        <p>Descubre los sneakers más exclusivos y accesorios de temporada.</p>
         <div style="display: flex; gap: 10px;">
             <a class="btn" href="catalog_user.html">Ver catálogo</a>
         </div>
       </div>
-      <div class="hero__img"></div>
     </div>
   </section>
 
-  <!-- Bloque informativo sin comprometer funcionalidades -->
-  <main class="container" style="padding-top: 14px;">
+  <main class="container">
     <section class="promo-box">
       <h2 class="promo-title">Promociones y novedades</h2>
-      <p class="promo-sub">
-        Aquí vamos a estar compartiendo información sobre ofertas, lanzamientos y novedades de la tienda.
-        Si quieres ver más detalles, entra desde aquí.
-      </p>
-
+      <p class="promo-sub">Lanzamientos exclusivos de Ballers Store.</p>
       <ul class="promo-list">
-        <li>Revisa la sección para enterarte de lo nuevo que vaya saliendo.</li>
-        <li>En algunos casos puede haber precios especiales o información extra.</li>
-        <li>La disponibilidad y condiciones pueden variar.</li>
+        <li>Nuevos ingresos de temporada cada semana.</li>
+        <li>Descuentos especiales para usuarios registrados.</li>
       </ul>
-
       <div class="promo-actions">
-        <a class="btn" href="login.html">Click aquí para más información</a>
+        <a class="btn" href="login.html">Más información</a>
       </div>
     </section>
   </main>
 </div>
 
 <div id="admin-view" class="hidden">
-  <main class="container" style="padding: 60px 20px;">
-    <h2>Gestión de Operaciones</h2>
-    <p style="color: var(--muted)">Bienvenido al panel administrativo de Ballers.</p>
+  <main class="container" style="padding: 40px 20px;">
     
-    <div class="grid" style="margin-top: 30px;">
+    <div id="alert-container"></div>
+
+    <h2>Gestión de Operaciones</h2>
+    <p style="color: #888">Panel central de administración SCM y CRM.</p>
+    
+    <div class="grid-admin">
       <article class="card">
         <div class="card__body">
           <h3>Inventario</h3>
-          <p>Control de stock y tallas.</p>
+          <p>Control de stock, tallas y trazabilidad MySQL.</p>
           <a href="inventario.html" class="btn" style="margin-top:15px">Gestionar</a>
         </div>
-        <article class="card">
-  <div class="card__body">
-    <h3>Métricas CRM</h3>
-    <p>Estadísticas de ventas y usuarios.</p>
-    <a href="metricas.html" class="btn" style="margin-top:15px">Ver métricas</a>
-  </div>
-</article>
-
       </article>
+
+      <article class="card">
+        <div class="card__body">
+          <h3>Proveedores SCM</h3>
+          <p>Gestión de pedidos y surtido de almacén.</p>
+          <a href="proveedores.html" class="btn" style="margin-top:15px; background: #25D366;">Ir a Proveedores</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card__body">
+          <h3>Inteligencia de Negocio</h3>
+          <p>Análisis de ventas y métricas en tiempo real.</p>
+          <a href="dashboard-erp.html" class="btn" style="margin-top:15px">Ver gráficas</a>
+        </div>
+      </article>
+
       <article class="card">
         <div class="card__body">
           <h3>Usuarios</h3>
-          <p>Administrar cuentas de clientes.</p>
+          <p>Gestión de roles y accesos al sistema.</p>
           <a href="usuarios.html" class="btn" style="margin-top:15px">Ver lista</a>
         </div>
       </article>
@@ -146,18 +163,16 @@
 </div>
 
 <footer class="footer">
-  <div class="container footer__inner">
+  <div class="container footer__inner" style="text-align: center; padding: 20px;">
     <small>© 2026 Ballers Store. Todos los derechos reservados.</small>
-    <div class="footer__links">
-        <a href="#">Privacidad</a> | <a href="#">Soporte</a>
-    </div>
   </div>
 </footer>
 
-<script src="../../js/app.js"></script>
 <script>
-  // Lógica de Roles
+  // 1. Obtener datos de sesión
   const role = localStorage.getItem('ballers_role'); 
+  
+  // Elementos de la interfaz
   const navUser = document.getElementById('nav-user');
   const navAdmin = document.getElementById('nav-admin');
   const userView = document.getElementById('user-view');
@@ -165,14 +180,23 @@
   const btnLogin = document.getElementById('btn-login');
   const btnLogout = document.getElementById('btn-logout');
 
-  if (role === 'admin' || role === 'empleado') {
+  // 2. Lógica de Roles: Comparamos con los valores de tu ballers_db
+  if (role === 'admin' || role === 'administrador' || role === 'empleado') {
       adminView.classList.remove('hidden');
       navAdmin.classList.remove('hidden');
       btnLogout.classList.remove('hidden');
-      if(role === 'empleado') document.getElementById('admin-label').innerText = "Panel Empleado";
+      
+      if(role === 'empleado') {
+          document.getElementById('admin-label').innerText = "Panel Empleado";
+      }
+      
+      // Cargar alertas de stock
+      checkCriticalStock();
   } else {
+      // Vista por defecto: Cliente o No logueado
       userView.classList.remove('hidden');
       navUser.classList.remove('hidden');
+      
       if (role === 'cliente') {
           btnLogout.classList.remove('hidden');
       } else {
@@ -180,12 +204,34 @@
       }
   }
 
-  function logout() {
-      localStorage.removeItem('ballers_role');
-      window.location.reload(); 
+  // 3. Función para detectar Stock 0
+  async function checkCriticalStock() {
+    try {
+      const res = await fetch('/api/inventario');
+      const data = await res.json();
+      // Filtramos productos con stock agotado
+      const sinStock = data.filter(p => (p.stock || 0) <= 0);
+
+      if(sinStock.length > 0) {
+        const container = document.getElementById('alert-container');
+        container.innerHTML = `
+          <div class="stock-alert">
+            <span>⚠️ Alerta SCM: Tienes <strong>${sinStock.length}</strong> productos en stock cero.</span>
+            <a href="proveedores.html" class="btn" style="background:#ff4444; padding: 5px 10px; font-size: 0.8rem;">Surtir</a>
+          </div>`;
+      }
+    } catch (e) { 
+      console.log("Error al conectar con la API de inventario:", e); 
+    }
   }
 
-  // Toggle menú móvil
+  function logout() {
+      localStorage.removeItem('ballers_role');
+      localStorage.removeItem('ballers_user_id');
+      window.location.href = "login.html"; 
+  }
+
+  // Menú hamburguesa para móvil
   document.getElementById('menu-toggle').onclick = function() {
       document.getElementById('main-nav').classList.toggle('open');
   };

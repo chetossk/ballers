@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva Orden ERP | Ballers 🏀</title>
+    <link rel="stylesheet" href="css/base.css">
+    <style>
+        .erp-container { display: flex; gap: 20px; padding: 20px; }
+        .panel { background: #141419; border: 1px solid #23232a; padding: 20px; border-radius: 10px; flex: 1; }
+        .item-list { margin-top: 15px; border-top: 1px solid #333; padding-top: 10px; }
+        .total-box { font-size: 1.5rem; color: #ff6a00; margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Centralización de Operaciones (ERP)</h1>
+        
+        <div class="erp-container">
+            <div class="panel">
+                <h3>🛒 Configurar Orden</h3>
+                <label>Seleccionar Cliente (CRM):</label>
+                <select id="cliente-select" class="input"></select>
+
+                <label style="margin-top:15px; display:block;">Agregar Producto (SCM):</label>
+                <select id="prod-select" class="input"></select>
+                <input type="number" id="prod-cant" value="1" min="1" class="input" style="margin-top:5px">
+                
+                <button onclick="agregarAlDetalle()" class="btn-confirm" style="width:100%; margin-top:10px">
+                    + Añadir a la Orden
+                </button>
+            </div>
+
+            <div class="panel">
+                <h3>📋 Resumen de la Operación</h3>
+                <div id="detalle-orden" class="item-list">
+                    </div>
+                <div class="total-box" id="total-display">Total: $0.00</div>
+                <button onclick="enviarOrdenERP()" class="btn-confirm" style="background:#25D366; width:100%; margin-top:20px">
+                    💾 Guardar y Procesar Orden
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let carritoItems = [];
+        let totalAcumulado = 0;
+
+        async function cargarCatalogos() {
+            // Cargar Clientes
+            const resC = await fetch('/api/usuarios');
+            const clientes = await resC.json();
+            document.getElementById('cliente-select').innerHTML = clientes
+                .filter(u => u.rol === 'cliente')
+                .map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
+
+            // Cargar Productos
+            const resP = await fetch('/api/inventario');
+            const prods = await resP.json();
+            window.catalogo = prods;
+            document.getElementById('prod-select').innerHTML = prods
+                .map(p => `<option value="${p.id}">${p.nombre} ($${p.precio})</option>`).join('');
+        }
+
+        function agregarAlDetalle() {
+            const pId = document.getElementById('prod-select').value;
+            const cant = parseInt(document.getElementById('prod-cant').value);
+            const producto = window.catalogo.find(p => p.id == pId);
+
+            carritoItems.push({ id: pId, nombre: producto.nombre, cant, precio: producto.precio });
+            actualizarVista();
+        }
+
+        function actualizarVista() {
+            const lista = document.getElementById('detalle-orden');
+            totalAcumulado = 0;
+            lista.innerHTML = carritoItems.map(item => {
+                const sub = item.precio * item.cant;
+                totalAcumulado += sub;
+                return `<div style="display:flex; justify-content:space-between; margin-bottom:8px">
+                            <span>${item.nombre} x${item.cant}</span>
+                            <span>$${sub.toFixed(2)}</span>
+                        </div>`;
+            }).join('');
+            document.getElementById('total-display').innerText = `Total: $${totalAcumulado.toFixed(2)}`;
+        }
+
+        async function enviarOrdenERP() {
+            if(carritoItems.length === 0) return alert("Agrega al menos un producto");
+            
+            const data = {
+                cliente_id: document.getElementById('cliente-select').value,
+                usuario_id: 1, // Usuario logueado (Admin/Ventas)
+                productos: carritoItems.map(i => ({ id: i.id, cant: i.cant }))
+            };
+
+            const res = await fetch('/api/ordenes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+
+            if(res.ok) {
+                alert("✅ Orden Empresarial Generada Exitosamente");
+                carritoItems = [];
+                actualizarVista();
+            }
+        }
+
+        cargarCatalogos();
+    </script>
+</body>
+</html>

@@ -1,146 +1,271 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin | Gestión de Proveedores SCM</title>
-  <link rel="stylesheet" href="css/base.css">
-  <style>
-    :root {
-      --primary: #ff6a00; --bg: #0b0b0f; --panel: #141419; 
-      --border: #2a2a32; --radius: 12px;
-    }
-    body { background-color: var(--bg); color: #fff; font-family: 'Inter', sans-serif; margin: 0; }
-    
-    /* Barra de Navegación Admin */
-    .admin-nav {
-      background: var(--panel); border-bottom: 1px solid var(--border);
-      padding: 15px 40px; display: flex; justify-content: space-between; align-items: center;
-    }
-    .admin-nav .logo { font-weight: bold; color: var(--primary); font-size: 1.2rem; text-decoration: none; }
-    .nav-links { display: flex; gap: 20px; list-style: none; margin: 0; }
-    .nav-links a { color: #888; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
-    .nav-links a:hover, .nav-links a.active { color: #fff; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proveedores SCM | Ballers 🏀</title>
+    <link rel="stylesheet" href="../../css/base.css">
+    <style>
+        :root { 
+            --primary: #ff6a00; 
+            --panel: #141419; 
+            --border: #23232a; 
+            --whatsapp: #25D366; 
+            --waiting: #ffcc00; 
+            --success-bg: rgba(37, 211, 102, 0.12);
+        }
+        
+        .section { background: var(--panel); border: 1px solid var(--border); padding: 25px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .order-panel { background: rgba(255,106,0,0.05); padding: 20px; border-radius: 10px; margin-bottom: 25px; display: flex; gap: 20px; align-items: flex-end; border: 1px dashed var(--primary); }
+        
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        th { text-align: left; color: #888; padding: 12px; font-size: 0.9rem; }
+        tr { background: #1a1a20; transition: 0.3s; }
+        td { padding: 15px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); color: #fff; }
+        
+        /* ESTADOS DE FILA */
+        tr.estado-recibido { background: var(--success-bg) !important; }
+        tr.estado-recibido td { border-color: rgba(37, 211, 102, 0.2); }
 
-    .content { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-    .grid { display: grid; grid-template-columns: 380px 1fr; gap: 30px; }
-    
-    .card { background: var(--panel); border: 1px solid var(--border); padding: 25px; border-radius: var(--radius); }
-    h2 { font-size: 1rem; text-transform: uppercase; color: var(--primary); margin-bottom: 20px; }
+        input, select { background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; border-radius: 6px; width: 100%; }
+        .btn-confirm { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-wa { background: var(--whatsapp); color: white; padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .btn-receive { background: var(--waiting); color: #000; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-delete { background: #331111; color: #ff4444; border: 1px solid #442222; padding: 8px; border-radius: 6px; cursor: pointer; }
 
-    /* Formulario */
-    .field { margin-bottom: 15px; }
-    label { display: block; font-size: 0.7rem; color: #666; text-transform: uppercase; margin-bottom: 5px; }
-    input, select {
-      width: 100%; padding: 12px; background: #0b0b0f; border: 1px solid var(--border);
-      color: #fff; border-radius: 8px; font-size: 0.9rem;
-    }
-    .btn-add {
-      width: 100%; padding: 14px; background: var(--primary); color: #fff;
-      border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px;
-    }
-
-    /* Tabla */
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; font-size: 0.7rem; color: #555; padding: 10px; border-bottom: 2px solid var(--border); }
-    td { padding: 15px 10px; border-bottom: 1px solid #1f1f25; font-size: 0.9rem; }
-    .cat-tag { background: #2a2a32; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; color: #ccc; }
-  </style>
+        .badge { background: #2a2a32; padding: 4px 10px; border-radius: 6px; color: var(--primary); font-size: 0.85rem; }
+        
+        .status-wait { color: var(--waiting); font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
+        .status-received { color: var(--whatsapp); font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
+    </style>
 </head>
 <body>
-
-  <nav class="admin-nav">
-    <a href="index.html" class="logo">BALLERS ADMIN</a>
-    <ul class="nav-links">
-      <li><a href="inventario.html">Inventario</a></li>
-      <li><a href="usuarios.html">Usuarios</a></li>
-      <li><a href="pedidos.html">Pedidos</a></li>
-      <li><a href="proveedores.html" class="active">Proveedores</a></li>
-      <li><a href="analytics.html">Analíticos</a></li>
-    </ul>
-  </nav>
-
-  <div class="content">
-    <div class="grid">
-      <section class="card">
-        <h2>Nuevo Proveedor SCM</h2>
-        <div class="field">
-          <label>Nombre Comercial</label>
-          <input type="text" id="nombre" placeholder="Ej: Nike Mexico S.A.">
+    <header class="header">
+        <div class="container header__inner" style="display:flex; align-items:center; padding: 15px 0;">
+            <a class="logo" href="index.html" style="text-decoration:none; font-size:1.5rem">Ballers 🏀</a>
+            <nav class="nav" style="margin-left:auto">
+                <ul style="display:flex; list-style:none; gap:20px">
+                    <li><a href="inventario.html">Inventario</a></li>
+                    <li><a class="active" href="proveedores.html" style="color:var(--primary)">Proveedores SCM</a></li>
+                    <li><a href="productos.html">Productos</a></li>
+                </ul>
+            </nav>
         </div>
-        <div class="field">
-          <label>Representante</label>
-          <input type="text" id="contacto" placeholder="Nombre del vendedor">
-        </div>
-        <div class="field">
-          <label>Correo Electrónico</label>
-          <input type="email" id="email" placeholder="ventas@empresa.com">
-        </div>
-        <div class="field">
-          <label>Categoría SCM</label>
-          <select id="categoria">
-            <option value="Calzado">Calzado (Sneakers)</option>
-            <option value="Ropa">Ropa (Jerseys/Apparel)</option>
-            <option value="Accesorios">Accesorios (Balones/Equipo)</option>
-          </select>
-        </div>
-        <button class="btn-add" onclick="registrar()">DAR DE ALTA</button>
-      </section>
+    </header>
 
-      <section class="card">
-        <h2>Directorio de Socios Comerciales</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Empresa</th>
-              <th>Contacto</th>
-              <th>Categoría</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody id="tablaBody">
-            </tbody>
-        </table>
-      </section>
-    </div>
-  </div>
+    <main class="container" style="margin-top: 30px; padding-bottom: 50px;">
+        
+        <section class="section">
+            <h3>📦 Registrar Nuevo Proveedor</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 15px;">
+                <input type="text" id="reg-nombre" placeholder="Nombre de la Empresa">
+                <input type="text" id="reg-contacto" placeholder="Nombre del Vendedor">
+                <input type="text" id="reg-tel" placeholder="WhatsApp (10 dígitos)">
+                <input type="text" id="reg-cat" placeholder="Categoría (Tenis/Ropa)">
+                <button class="btn-confirm" onclick="crearProveedor()">+ Guardar en DB</button>
+            </div>
+        </section>
 
-  <script>
-    async function cargar() {
-      const res = await fetch('/api/proveedores');
-      const data = await res.json();
-      document.getElementById('tablaBody').innerHTML = data.map(p => `
-        <tr>
-          <td><b style="color:var(--primary)">${p.nombre}</b><br><small style="color:#666">${p.email}</small></td>
-          <td>${p.contacto}</td>
-          <td><span class="cat-tag">${p.categoria}</span></td>
-          <td style="color:#44ff88">● Activo</td>
-        </tr>
-      `).join('');
-    }
+        <section class="section">
+            <h2>Realizar Solicitud de Resurtido</h2>
+            <div class="order-panel">
+                <div style="flex: 2;">
+                    <label style="display:block; margin-bottom:5px; color:#888;">1. ¿Qué producto falta?</label>
+                    <select id="prod-select"><option>Cargando catálogo...</option></select>
+                </div>
+                <div style="flex: 1;">
+                    <label style="display:block; margin-bottom:5px; color:#888;">2. Cantidad:</label>
+                    <input type="number" id="cant-pedir" value="12" min="1">
+                </div>
+            </div>
 
-    async function registrar() {
-      const payload = {
-        nombre: document.getElementById('nombre').value,
-        contacto: document.getElementById('contacto').value,
-        email: document.getElementById('email').value,
-        categoria: document.getElementById('categoria').value
-      };
+            <table>
+                <thead>
+                    <tr>
+                        <th>Distribuidor</th>
+                        <th>Contacto</th>
+                        <th>Categoría</th>
+                        <th>Acción Directa</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-prov"></tbody>
+            </table>
+        </section>
 
-      if(!payload.nombre) return alert("El nombre es obligatorio");
+        <section class="section" style="border-top: 3px solid var(--waiting);">
+            <h2 style="color: var(--waiting); margin: 0;">⏳ Rastreo de Mercancía</h2>
+            <p style="color:#888; margin-bottom: 20px;">Seguimiento de pedidos realizados y confirmación de arribo.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Proveedor</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-espera"></tbody>
+            </table>
+        </section>
 
-      const res = await fetch('/api/proveedores', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload)
-      });
+    </main>
 
-      if(res.ok) {
-        alert("Proveedor registrado con éxito en la cadena de suministro");
-        location.reload();
-      }
-    }
+    <script>
+        const API_INV = '/api/inventario';
+        const API_PROV = '/api/proveedores';
+        const API_SOL = '/api/solicitudes';
 
-    window.onload = cargar;
-  </script>
+        async function init() {
+            try {
+                // Cargar Productos (Para el select y actualizar stock visual)
+                const resP = await fetch(API_INV);
+                const prods = await resP.json();
+                document.getElementById('prod-select').innerHTML = prods.map(p => 
+                    `<option value="${p.id}">${p.nombre} (Stock: ${p.stock || 0})</option>`
+                ).join('');
+
+                // Cargar Proveedores
+                const resPr = await fetch(API_PROV);
+                const providers = await resPr.json();
+                renderProveedores(providers);
+
+                // Cargar Lista de Espera/Historial
+                await cargarListaEspera();
+
+            } catch (e) { console.error("Error inicializando:", e); }
+        }
+
+        function renderProveedores(lista) {
+            const tbody = document.getElementById('tbody-prov');
+            tbody.innerHTML = lista.map(p => `
+                <tr>
+                    <td><strong>${p.nombre}</strong></td>
+                    <td>${p.contacto || 'N/A'}</td>
+                    <td><span class="badge">${p.categoria}</span></td>
+                    <td style="display:flex; gap:8px;">
+                        <button class="btn-wa" onclick="pedirWhatsApp('${p.telefono}', '${p.contacto}', ${p.id})">
+                            📱 Solicitar Pedido
+                        </button>
+                        <button class="btn-delete" onclick="eliminarProv(${p.id})">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function crearProveedor() {
+            const data = {
+                nombre: document.getElementById('reg-nombre').value,
+                contacto: document.getElementById('reg-contacto').value,
+                telefono: document.getElementById('reg-tel').value,
+                categoria: document.getElementById('reg-cat').value
+            };
+            if(!data.nombre || !data.telefono) return alert("Faltan datos obligatorios");
+            await fetch(API_PROV, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            init();
+        }
+
+        async function eliminarProv(id) {
+            if(confirm("¿Eliminar este proveedor?")) {
+                await fetch(`${API_PROV}/${id}`, { method: 'DELETE' });
+                init();
+            }
+        }
+
+        async function pedirWhatsApp(tel, contacto, provId) {
+            const prodSelect = document.getElementById('prod-select');
+            const prodId = prodSelect.value;
+            const prodNombre = prodSelect.options[prodSelect.selectedIndex].text.split(' (')[0];
+            const cant = document.getElementById('cant-pedir').value;
+
+            const res = await fetch(API_SOL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ producto_id: prodId, proveedor_id: provId, cantidad: cant })
+            });
+
+            if(res.ok) {
+                let num = tel.replace(/\D/g, '');
+                if(num.length === 10) num = "52" + num;
+                const msg = encodeURIComponent(`Hola ${contacto}, solicito ${cant} unidades de ${prodNombre}.`);
+                window.open(`https://api.whatsapp.com/send?phone=${num}&text=${msg}`, '_blank');
+                init();
+            }
+        }
+
+        async function cargarListaEspera() {
+            const res = await fetch(`${API_SOL}/pendientes`);
+            const solicitudes = await res.json();
+            const tbody = document.getElementById('tbody-espera');
+            
+            if(solicitudes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#555;">No hay movimientos registrados.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = solicitudes.map(s => {
+                // Ajustado para reconocer 'completado' según tu ENUM de la base de datos
+                const esCompletado = s.estado === 'completado'; 
+                return `
+                    <tr class="${esCompletado ? 'estado-recibido' : ''}">
+                        <td>${new Date(s.fecha).toLocaleDateString()}</td>
+                        <td><strong>${s.producto_nombre}</strong></td>
+                        <td style="color:${esCompletado ? 'var(--whatsapp)' : 'var(--waiting)'}">
+                            ${esCompletado ? '✅' : '+'} ${s.cantidad}
+                        </td>
+                        <td>${s.proveedor_nombre}</td>
+                        <td>
+                            <span class="${esCompletado ? 'status-received' : 'status-wait'}">
+                                ${esCompletado ? 'Recibido' : 'Pendiente'}
+                            </span>
+                        </td>
+                        <td>
+                            ${esCompletado ? 
+                                `<span style="color:var(--whatsapp); font-size:1.2rem">✔</span>` : 
+                                `<button class="btn-receive" onclick="confirmarArribo(${s.id}, ${s.producto_id}, ${s.cantidad})">
+                                    📥 Recibir
+                                </button>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function confirmarArribo(solId, prodId, cant) {
+            if(!confirm(`¿Recibir ${cant} unidades?`)) return;
+
+            try {
+                const res = await fetch(`/api/solicitudes/confirmar`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        solicitud_id: solId, 
+                        producto_id: prodId, 
+                        cantidad: Number(cant) 
+                    })
+                });
+
+                const data = await res.json();
+
+                if(res.ok && data.success) {
+                    await init(); // Recarga stock y tabla
+                    alert("✅ ¡Stock actualizado correctamente!");
+                } else {
+                    alert("❌ Error: " + (data.message || "Error desconocido"));
+                }
+            } catch (e) {
+                alert("❌ Error de conexión con el servidor.");
+            }
+        }
+
+        init();
+    </script>
 </body>
 </html>

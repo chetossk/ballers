@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Automatización ERP | Ballers 🏀</title>
+    <link rel="stylesheet" href="css/base.css">
+    <style>
+        .status-card { background: #141419; padding: 30px; border-radius: 15px; border: 1px solid #23232a; text-align: center; max-width: 500px; margin: 50px auto; }
+        .step { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; opacity: 0.3; transition: 0.5s; }
+        .step.active { opacity: 1; color: #ff6a00; font-weight: bold; }
+        .step.done { opacity: 1; color: #25D366; }
+        .loader { border: 4px solid #333; border-top: 4px solid #ff6a00; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="status-card" id="status-box">
+            <h2>Procesando Operación ERP</h2>
+            <p style="color:#888">Eliminando procesos manuales...</p>
+            
+            <div id="steps-container" style="margin-top:30px">
+                <div class="step" id="step1"><div class="loader"></div> 1. Creando Orden Empresarial</div>
+                <div class="step" id="step2"><div class="loader"></div> 2. Actualizando Stock (SCM)</div>
+                <div class="step" id="step3"><div class="loader"></div> 3. Registrando Movimiento</div>
+                <div class="step" id="step4"><div class="loader"></div> 4. Generando Reporte</div>
+            </div>
+
+            <button id="btn-finalizar" onclick="window.location.href='inventario.html'" 
+                    style="display:none; margin-top:20px; background:#25D366" class="btn-confirm">
+                ✅ Operación Exitosa - Volver
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Función para simular el éxito visual paso a paso
+        async function ejecutarAutomatizacion(datosVenta) {
+            const pasos = ['step1', 'step2', 'step3', 'step4'];
+            
+            try {
+                // Llamada real al backend integrado
+                const res = await fetch('/api/ordenes/procesar', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(datosVenta)
+                });
+                const data = await res.json();
+
+                if(data.ok) {
+                    // Animación de los pasos para demostrar el beneficio del ERP
+                    for(let i=0; i < pasos.length; i++) {
+                        document.getElementById(pasos[i]).className = 'step active';
+                        await new Promise(r => setTimeout(r, 600)); // Simulación visual
+                        document.getElementById(pasos[i]).className = 'step done';
+                        document.getElementById(pasos[i]).innerHTML = `✔ ${document.getElementById(pasos[i]).innerText.split('. ')[1]}`;
+                    }
+                    
+                    document.getElementById('btn-finalizar').style.display = 'block';
+                    alert(data.message);
+                }
+            } catch (e) {
+                alert("Error en la automatización del ERP");
+            }
+        }
+
+        // Ejemplo de ejecución (Esto vendría del carrito de compras)
+        const ventaSimulada = {
+            cliente_id: 9, // Kevin Emmanuel
+            items: [{id: 1, cant: 2}], // 2 pares de tenis
+            usuario_id: 1
+        };
+
+        // Ejecutar al cargar la página para demostrar el flujo
+        ejecutarAutomatizacion(ventaSimulada);
+    </script>
+</body>
+</html>

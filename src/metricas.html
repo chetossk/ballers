@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Metricas del Negocio | Ballers</title>
+  <title>Inteligencia de Negocio | Ballers</title>
   <style>
     :root {
       --primary: #ff6a00; --secondary: #44ff88; --bg: #0b0b0f;
@@ -19,7 +19,7 @@
 
     .dashboard { max-width: 1100px; margin: 0 auto; }
 
-    header { margin-bottom: 30px; }
+    header { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
     header h1 { font-size: 1.8rem; margin: 0; font-weight: 700; }
     header p { color: #666; margin: 5px 0 0; font-size: 0.9rem; }
 
@@ -41,6 +41,23 @@
     .kpi-card:hover { transform: translateY(-3px); border-color: #444; }
     .kpi-card span { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 10px; }
     .kpi-card h2 { margin: 0; font-size: 1.6rem; color: var(--primary); }
+
+    /* NAVEGACIÓN SCM */
+    .scm-nav {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 20px;
+      border-radius: var(--radius);
+      margin-bottom: 25px;
+    }
+    .scm-nav h3 { margin: 0 0 15px 0; font-size: 1rem; color: var(--primary); }
+    .nav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+    .nav-btn {
+      background: #0b0b0f; border: 1px solid var(--border); color: #fff;
+      padding: 12px; text-decoration: none; border-radius: 8px;
+      text-align: center; font-size: 0.85rem; font-weight: 600; transition: 0.3s;
+    }
+    .nav-btn:hover { border-color: var(--primary); color: var(--primary); }
 
     /* Gráficas */
     .charts-grid {
@@ -86,15 +103,17 @@
     .risk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
     .risk-card { background: #0b0b0f; padding: 15px; border-radius: 8px; border: 1px solid #222; font-size: 0.8rem; }
     .risk-card strong { display: block; color: #fff; margin-bottom: 4px; }
-    .risk-card span { color: #555; }
   </style>
 </head>
 <body>
 
 <div class="dashboard">
   <header>
-    <h1>Inteligencia de Negocio</h1>
-    <p>Análisis Integrado CRM & SCM</p>
+    <div>
+      <h1>Inteligencia de Negocio</h1>
+      <p>Análisis Integrado CRM & SCM</p>
+    </div>
+    <div style="color: var(--secondary); font-size: 0.8rem; border: 1px solid var(--secondary); padding: 5px 15px; border-radius: 20px;">SISTEMA ACTIVO</div>
   </header>
 
   <div class="kpi-row">
@@ -102,6 +121,16 @@
     <div class="kpi-card"><span>Clientes</span><h2 id="totalClientes">0</h2></div>
     <div class="kpi-card"><span>Stock Crítico</span><h2 id="stockCritico" style="color:var(--danger)">0</h2></div>
     <div class="kpi-card"><span>Reposiciones</span><h2 id="reposicionesPush">0</h2></div>
+  </div>
+
+  <div class="scm-nav">
+    <h3>📦 Módulo de Suministros (SCM)</h3>
+    <div class="nav-grid">
+      <a href="productos.html" class="nav-btn">➕ Nuevo Producto</a>
+      <a href="movimientos.html" class="nav-btn">🔄 Movimientos</a>
+      <a href="dashboard_scm.html" class="nav-btn">📊 Panel Logístico</a>
+      <a href="pushpull.html" class="nav-btn">⚙️ Estrategias</a>
+    </div>
   </div>
 
   <div class="charts-grid">
@@ -121,17 +150,14 @@
   <div class="risk-section">
     <h3>⚠️ Clientes en Riesgo (Inactivos)</h3>
     <div id="lista-riesgo" class="risk-grid">
-      <p style="color:var(--secondary); font-size:0.9rem;">Cargando datos de cartera...</p>
+      <p style="color:var(--muted); font-size:0.9rem;">Cargando datos...</p>
     </div>
   </div>
 </div>
 
-
-
 <script>
   const COLORS = ['#ff6a00', '#44ff88', '#7dd3fc', '#ef4444'];
 
-  // Configuración del lienzo para alta definición
   function setupCanvas(id) {
     const canvas = document.getElementById(id);
     const dpr = window.devicePixelRatio || 1;
@@ -153,7 +179,7 @@
       const response = await fetch('/api/admin/metrics');
       const data = await response.json();
 
-      // 1. Actualizar números (KPIs)
+      // KPIs
       document.getElementById('totalVentas').innerText = new Intl.NumberFormat('es-MX', { 
         style: 'currency', currency: 'MXN' 
       }).format(data.revenue || 0);
@@ -162,21 +188,21 @@
       document.getElementById('stockCritico').innerText = data.stock_critico || 0;
       document.getElementById('reposicionesPush').innerText = data.reposiciones_push || 0;
 
-      // 2. Renderizar Gráficas
+      // Gráficas
       renderSCM(data);
       renderCRM(data);
 
-      // 3. Clientes en Riesgo
+      // Riesgo
       const riskContainer = document.getElementById('lista-riesgo');
       if (data.clientesRiesgo && data.clientesRiesgo.length > 0) {
         riskContainer.innerHTML = data.clientesRiesgo.map(c => `
           <div class="risk-card">
             <strong>${c.nombre}</strong>
-            <span>${c.correo}</span>
+            <span style="color:#555">${c.correo}</span>
           </div>
         `).join('');
       } else {
-        riskContainer.innerHTML = '<p style="color:var(--secondary); font-size:0.85rem;">Cartera saludable y al día.</p>';
+        riskContainer.innerHTML = '<p style="color:var(--secondary);">Cartera saludable.</p>';
       }
 
     } catch (error) {
@@ -188,7 +214,7 @@
     const { ctx, w, h } = setupCanvas('chartSCM');
     const items = [
       { label: 'Bajo Stock', value: data.stock_critico || 0, color: COLORS[0] },
-      { label: 'Reposición', value: data.reposiciones_push || 0, color: COLORS[1] }
+      { label: 'Reposiciones', value: data.reposiciones_push || 0, color: COLORS[1] }
     ];
 
     const maxVal = Math.max(5, ...items.map(i => i.value));
@@ -200,88 +226,70 @@
       const x = (w / 2 - 75) + (i * spacing);
       const y = h - barHeight - 30;
 
-      // Sombra suave
       ctx.fillStyle = "rgba(0,0,0,0.3)";
       ctx.fillRect(x + 4, y + 4, barWidth, barHeight);
-
-      // Barra
       ctx.fillStyle = item.color;
       ctx.fillRect(x, y, barWidth, barHeight);
 
-      // Valor sobre la barra
       ctx.fillStyle = "#fff";
       ctx.font = "bold 13px sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(item.value, x + barWidth / 2, y - 12);
     });
-
     updateLegend('legSCM', items);
   }
 
   function renderCRM(data) {
     const { ctx, w, h } = setupCanvas('chartCRM');
-    
-    // Obtener valores del objeto resumen o directamente de la raíz
-    const activos = data.resumen?.activos ?? data.activos ?? 0;
-    const inactivos = data.resumen?.inactivos ?? data.inactivos ?? 0;
-
+    const activos = data.activos || 0;
+    const inactivos = data.inactivos || 0;
     const items = [
-      { label: 'Activos', value: activos, color: '#44ff88' },
-      { label: 'Inactivos', value: inactivos, color: '#ef4444' }
+      { label: 'Activos', value: activos, color: COLORS[1] },
+      { label: 'Inactivos', value: inactivos, color: COLORS[3] }
     ];
 
-    const total = items.reduce((a, b) => a + b.value, 0);
+    const total = activos + inactivos;
     const cX = w / 2, cY = h / 2 - 10;
 
     if (total === 0) {
-      drawEmptyState(ctx, cX, cY);
+        drawEmpty(ctx, cX, cY);
     } else {
-      let startAngle = -Math.PI / 2;
-      items.forEach(item => {
-        const slice = (2 * Math.PI * item.value) / total;
+        let start = -Math.PI / 2;
+        items.forEach(it => {
+            const slice = (2 * Math.PI * it.value) / total;
+            ctx.beginPath();
+            ctx.moveTo(cX, cY);
+            ctx.arc(cX, cY, 75, start, start + slice);
+            ctx.fillStyle = it.color;
+            ctx.fill();
+            start += slice;
+        });
+        // Agujero dona
         ctx.beginPath();
-        ctx.moveTo(cX, cY);
-        ctx.arc(cX, cY, 75, startAngle, startAngle + slice);
-        ctx.fillStyle = item.color;
+        ctx.arc(cX, cY, 48, 0, Math.PI * 2);
+        ctx.fillStyle = "#141419";
         ctx.fill();
-        startAngle += slice;
-      });
-
-      // Efecto Dona (agujero central)
-      ctx.beginPath();
-      ctx.arc(cX, cY, 48, 0, Math.PI * 2);
-      ctx.fillStyle = "#141419";
-      ctx.fill();
     }
-
     updateLegend('legCRM', items);
   }
 
-  function drawEmptyState(ctx, x, y) {
+  function drawEmpty(ctx, x, y) {
     ctx.beginPath();
     ctx.arc(x, y, 70, 0, Math.PI * 2);
     ctx.strokeStyle = "#2a2a32";
     ctx.setLineDash([5, 5]);
-    ctx.lineWidth = 2;
     ctx.stroke();
-    
     ctx.fillStyle = "#555";
     ctx.textAlign = "center";
-    ctx.font = "12px sans-serif";
-    ctx.fillText("Sin datos registrados", x, y + 5);
+    ctx.fillText("Sin datos", x, y);
   }
 
   function updateLegend(id, items) {
-    const container = document.getElementById(id);
-    container.innerHTML = items.map(it => `
-      <div class="legend-item">
-        <div class="dot" style="background:${it.color}"></div>
-        ${it.label}
-      </div>
+    document.getElementById(id).innerHTML = items.map(it => `
+      <div class="legend-item"><div class="dot" style="background:${it.color}"></div>${it.label}</div>
     `).join('');
   }
 
-  // Inicializar al cargar
   window.onload = fetchMetrics;
 </script>
 </body>

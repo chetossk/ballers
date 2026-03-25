@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SCM Intelligence | Ballers</title>
+    <style>
+        :root { --primary: #ff6a00; --bg: #0b0b0f; --panel: #141419; --border: #2a2a32; }
+        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; padding: 25px; margin: 0; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .card { background: var(--panel); border: 1px solid var(--border); padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: var(--primary); padding: 10px; border-bottom: 2px solid var(--border); font-size: 0.8rem; text-transform: uppercase; }
+        td { padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        h1 { margin-bottom: 30px; font-weight: 800; letter-spacing: -1px; }
+        h3 { margin-top: 0; font-size: 1rem; display: flex; align-items: center; gap: 10px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .badge-critico { color: #ff4444; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Panel de Control SCM (Etapa 2)</h1>
+
+        <div class="card">
+            <h3>Nivel de Madurez Logística: <span id="nivel-txt" style="color:var(--primary)">Cargando...</span></h3>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h3>⚠️ Inventario Crítico</h3>
+                <table>
+                    <thead><tr><th>Producto</th><th>Stock Actual</th><th>Mínimo</th></tr></thead>
+                    <tbody id="lista-critico">
+                        <tr><td colspan="3">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>📦 Top Existencias (SCM)</h3>
+                <table>
+                    <thead><tr><th>Producto</th><th>Stock Actual</th></tr></thead>
+                    <tbody id="lista-top">
+                        <tr><td colspan="2">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadSCM() {
+            try {
+                // Hacemos una sola llamada al endpoint del servidor
+                const response = await fetch('/api/scm/dashboard');
+                const data = await response.json();
+
+                // 1. Mostrar Nivel de Madurez
+                document.getElementById('nivel-txt').innerText = data.madurez;
+
+                // 2. Llenar Inventario Crítico
+                const listaCritico = document.getElementById('lista-critico');
+                if (data.inventarioCritico.length > 0) {
+                    listaCritico.innerHTML = data.inventarioCritico.map(p => `
+                        <tr>
+                            <td>${p.nombre}</td>
+                            <td class="badge-critico">${p.stock}</td>
+                            <td>${p.stock_minimo}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    listaCritico.innerHTML = '<tr><td colspan="3" style="text-align:center;">✅ Todo el stock está ok</td></tr>';
+                }
+
+                // 3. Llenar Top Vendidos / Existencias
+                const listaTop = document.getElementById('lista-top');
+                listaTop.innerHTML = data.topVendidos.map(p => `
+                    <tr>
+                        <td>${p.nombre}</td>
+                        <td style="color: #44ff88;">${p.stock} unidades</td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error("Error cargando el panel SCM:", error);
+                document.getElementById('nivel-txt').innerText = "Error de conexión";
+            }
+        }
+
+        // Ejecutar al abrir la página
+        loadSCM();
+    </script>
+</body>
+</html>

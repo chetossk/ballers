@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estrategias PUSH / PULL | Ballers</title>
+    <style>
+        :root { --primary: #ff6a00; --bg: #0b0b0f; --panel: #141419; --border: #2a2a32; }
+        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; padding: 25px; }
+        .card { background: var(--panel); border: 1px solid var(--border); padding: 30px; border-radius: 12px; max-width: 1000px; margin: 0 auto; }
+        h1 { font-size: 2rem; margin-bottom: 10px; font-weight: 700; }
+        p { color: #888; margin-bottom: 30px; font-size: 0.9rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: var(--primary); padding: 15px 10px; border-bottom: 1px solid var(--border); font-size: 0.85rem; text-transform: uppercase; }
+        td { padding: 15px 10px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .btn-cambiar { 
+            background: transparent; border: 1px solid var(--primary); color: var(--primary); 
+            padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.75rem;
+        }
+        .btn-cambiar:hover { background: var(--primary); color: #fff; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.7rem; background: #222; }
+        .badge-push { border: 1px solid #44ff88; color: #44ff88; }
+        .badge-pull { border: 1px solid #7dd3fc; color: #7dd3fc; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>Estrategias PUSH / PULL</h1>
+        <p>Define qué productos generan reposición automática (PUSH).</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Stock</th>
+                    <th>Estrategia Actual</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-estrategias">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function cargarEstrategias() {
+            try {
+                const res = await fetch('/api/scm/estrategias');
+                const productos = await res.json();
+                
+                const tbody = document.getElementById('tabla-estrategias');
+                tbody.innerHTML = productos.map(p => `
+                    <tr>
+                        <td style="color:var(--primary); font-weight:bold;">${p.id}</td>
+                        <td>${p.nombre}</td>
+                        <td>${p.stock}</td>
+                        <td>
+                            <span class="badge ${p.estrategia_logistica === 'PUSH' ? 'badge-push' : 'badge-pull'}">
+                                ${p.estrategia_logistica}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-cambiar" onclick="cambiarEstrategia(${p.id}, '${p.estrategia_logistica}')">
+                                CAMBIAR
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("Error cargando productos:", err);
+            }
+        }
+
+        async function cambiarEstrategia(id, actual) {
+            const nueva = actual === 'PUSH' ? 'PULL' : 'PUSH';
+            const res = await fetch('/api/scm/cambiar-estrategia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, nuevaEstrategia: nueva })
+            });
+
+            if (res.ok) {
+                cargarEstrategias(); // Recargar la tabla
+            }
+        }
+
+        // Cargar al iniciar
+        cargarEstrategias();
+    </script>
+</body>
+</html>
